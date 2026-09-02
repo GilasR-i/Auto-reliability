@@ -1,0 +1,2364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recueil de fiabilité — Véhicules de tourisme et utilitaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F6F3;
+    --surface:#FFFFFF;
+    --ink:#15181B;
+    --ink-soft:#565C60;
+    --line:#E2E4DF;
+    --tourisme:#215D4E;
+    --tourisme-soft:#DCEBE6;
+    --utilitaire:#1E3A5C;
+    --utilitaire-soft:#DCE4EC;
+    --vigilance:#B5501E;
+    --vigilance-soft:#F4E1D3;
+    --good:#1F7A4D;
+    --good-soft:#DBEFE1;
+    --bad:#B0311D;
+    --bad-soft:#F5DEDA;
+    --tooltip-bg:#101315;
+    --radius-s:6px;
+    --radius-m:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+  button, input, select{font-family:inherit;}
+  .app{display:flex; min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:252px;
+    flex-shrink:0;
+    background:var(--surface);
+    border-right:1px solid var(--line);
+    padding:28px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:26px;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .brand{padding:0 8px;}
+  .brand .mark{
+    width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(135deg,var(--tourisme),var(--utilitaire));
+    margin-bottom:12px;
+  }
+  .brand h1{font-size:17px; line-height:1.3;}
+  .brand p{margin:6px 0 0; font-size:12.5px; color:var(--ink-soft); line-height:1.5;}
+
+  nav{display:flex; flex-direction:column; gap:2px;}
+  .navlabel{
+    font-size:11px; color:var(--ink-soft); text-transform:uppercase;
+    letter-spacing:.06em; padding:0 10px; margin:14px 0 6px;
+  }
+  .navlabel:first-child{margin-top:0;}
+  nav button{
+    all:unset;
+    display:flex; align-items:center; gap:10px;
+    padding:9px 10px;
+    border-radius:var(--radius-s);
+    font-size:14px; font-weight:500;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  nav button .dot{width:7px;height:7px;border-radius:50%; background:var(--line); flex-shrink:0;}
+  nav button .cnt{margin-left:auto; font-size:11.5px; color:var(--ink-soft);}
+  nav button:hover{background:#F0F1EE; color:var(--ink);}
+  nav button.active{background:var(--ink); color:#fff;}
+  nav button.active .dot{background:#fff;}
+  nav button.active .cnt{color:#cfd2d4;}
+
+  .sidebar-foot{
+    margin-top:auto; padding:12px 10px; border-top:1px solid var(--line);
+    font-size:11.5px; color:var(--ink-soft); line-height:1.6;
+  }
+
+  /* ---------- Main ---------- */
+  main{flex:1; padding:36px 44px 64px; max-width:1260px;}
+  .section{display:none;}
+  .section.active{display:block; animation:rise .35s ease;}
+  @keyframes rise{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .section-head{margin-bottom:24px;}
+  .kicker{font-size:12.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .section-head h2{font-size:26px;}
+  .section-head p{margin:10px 0 0; max-width:700px; color:var(--ink-soft); font-size:14.5px; line-height:1.6;}
+
+  /* KPI ribbon */
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:32px;}
+  .kpi{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m);
+    padding:16px 18px;
+  }
+  .kpi .num{font-family:'Space Grotesk',sans-serif; font-size:24px; font-weight:600;}
+  .kpi .lab{font-size:12.5px; color:var(--ink-soft); margin-top:4px;}
+
+  /* Category legend chips */
+  .legend-row{display:flex; gap:18px; margin-bottom:22px; flex-wrap:wrap;}
+  .legend-chip{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-soft);}
+  .legend-chip .sw{width:11px;height:11px;border-radius:3px;}
+
+  /* ---------- Toolbar (search / filter / sort) ---------- */
+  .toolbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin-bottom:20px; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius-m); padding:12px 14px;
+  }
+  .search-box{
+    display:flex; align-items:center; gap:8px; flex:1; min-width:200px;
+    border:1px solid var(--line); border-radius:var(--radius-s); padding:8px 12px;
+    background:var(--bg);
+  }
+  .search-box svg{flex-shrink:0; opacity:.5;}
+  .search-box input{
+    border:none; outline:none; background:transparent; font-size:13.5px; width:100%; color:var(--ink);
+  }
+  .chipset{display:flex; gap:6px; flex-wrap:wrap;}
+  .chip{
+    border:1px solid var(--line); background:var(--surface); color:var(--ink-soft);
+    font-size:12.5px; font-weight:500; padding:6px 12px; border-radius:20px; cursor:pointer;
+  }
+  .chip.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+  select.sortsel{
+    border:1px solid var(--line); border-radius:var(--radius-s); padding:8px 10px;
+    background:var(--surface); font-size:12.5px; color:var(--ink); cursor:pointer;
+  }
+  .result-count{font-size:12px; color:var(--ink-soft); margin:0 0 14px 2px;}
+
+  /* slider */
+  .slider-box{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-soft); padding:0 4px;}
+  .slider-box input[type=range]{accent-color:var(--ink); width:120px;}
+
+  /* Card grid */
+  .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m);
+    padding:18px 20px; cursor:pointer; transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .card:hover{border-color:#C9CDC5;}
+  .card.selected{border-color:var(--ink); box-shadow:0 0 0 1px var(--ink) inset;}
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:12px;}
+  .card h3{font-size:15.5px;}
+  .card .era{font-size:11.5px; color:var(--ink-soft); margin-top:3px;}
+  .badge{
+    font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; white-space:nowrap;
+  }
+  .badge.tourisme{background:var(--tourisme-soft); color:var(--tourisme);}
+  .badge.utilitaire{background:var(--utilitaire-soft); color:var(--utilitaire);}
+
+  .score-row{display:flex; align-items:center; gap:10px; margin-top:12px;}
+  .score-badge{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px;
+    color:#fff; padding:2px 8px; border-radius:6px; flex-shrink:0;
+  }
+  .score-bar{display:flex; gap:2px; flex:1;}
+  .score-bar i{flex:1; height:6px; border-radius:2px; background:var(--line);}
+
+  .margin-strip{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    margin-top:12px; padding:9px 12px; border-radius:var(--radius-s); background:var(--bg);
+  }
+  .margin-strip .mv{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px;}
+  .margin-strip .ml{font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;}
+  .margin-pill{font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px;}
+  .margin-pill.good{background:var(--good-soft); color:var(--good);}
+  .margin-pill.mid{background:var(--vigilance-soft); color:var(--vigilance);}
+  .margin-pill.bad{background:var(--bad-soft); color:var(--bad);}
+
+  .card-body{display:none; margin-top:14px; border-top:1px solid var(--line); padding-top:13px;}
+  .card.open .card-body{display:block;}
+  .card.open{border-color:var(--ink);}
+  .field{margin-bottom:10px;}
+  .field:last-child{margin-bottom:0;}
+  .field .k{font-size:11.5px; color:var(--ink-soft); margin-bottom:3px;}
+  .field .v{font-size:13.5px; line-height:1.55;}
+  .field ul{margin:2px 0 0; padding-left:16px; font-size:13px; line-height:1.65;}
+  .card-actions{display:flex; gap:8px; margin-top:14px; align-items:center;}
+  .btn-compare{
+    border:1px solid var(--line); background:var(--bg); color:var(--ink);
+    font-size:12px; font-weight:600; padding:6px 12px; border-radius:20px; cursor:pointer;
+  }
+  .btn-compare.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .expand-hint{font-size:11.5px; color:var(--vigilance); margin-top:2px; font-weight:500;}
+
+  .achat-revente{display:inline-flex; gap:14px; margin-top:2px; flex-wrap:wrap;}
+  .ar-box{background:var(--bg); border-radius:var(--radius-s); padding:8px 12px; min-width:110px;}
+  .ar-box .k{font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em;}
+  .ar-box .v{font-family:'Space Grotesk',sans-serif; font-size:14.5px; font-weight:600; margin-top:2px;}
+
+  .price-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:4px;}
+  .price-box{background:var(--bg); border-radius:var(--radius-s); padding:10px 12px;}
+  .price-box .k{font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;}
+  .price-box .v{font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700; margin-top:3px;}
+  .price-box.margin .v{font-size:15px;}
+  .risk-flag{
+    margin-top:9px; font-size:12px; background:var(--bad-soft); color:var(--bad);
+    padding:8px 11px; border-radius:var(--radius-s); font-weight:500; line-height:1.5;
+  }
+
+  /* Comparateur floating tray */
+  .compare-tray{
+    position:fixed; bottom:0; left:252px; right:0; background:var(--ink); color:#fff;
+    padding:14px 30px; display:none; align-items:center; gap:16px; z-index:40;
+    box-shadow:0 -8px 24px rgba(0,0,0,.15);
+  }
+  .compare-tray.show{display:flex;}
+  .compare-tray .chips{display:flex; gap:8px; flex:1; flex-wrap:wrap;}
+  .compare-tray .tchip{
+    background:#282C2F; padding:6px 12px; border-radius:20px; font-size:12.5px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .compare-tray .tchip button{all:unset; cursor:pointer; opacity:.6; font-size:14px;}
+  .compare-tray .go{
+    all:unset; cursor:pointer; background:#fff; color:var(--ink); font-weight:600;
+    font-size:13px; padding:9px 18px; border-radius:20px; white-space:nowrap;
+  }
+  .compare-tray .clear{all:unset; cursor:pointer; color:#9AA0A4; font-size:12.5px; white-space:nowrap;}
+
+  /* Comparateur table */
+  .empty-compare{
+    background:var(--surface); border:1px dashed var(--line); border-radius:var(--radius-m);
+    padding:44px 30px; text-align:center; color:var(--ink-soft); font-size:14px;
+  }
+  .compare-table{width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); overflow:hidden;}
+  .compare-table th, .compare-table td{
+    text-align:left; padding:13px 16px; border-bottom:1px solid var(--line); font-size:13.5px;
+    vertical-align:top; line-height:1.55;
+  }
+  .compare-table th{background:var(--bg); font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600;}
+  .compare-table td.label{color:var(--ink-soft); font-size:12px; text-transform:uppercase; letter-spacing:.03em; width:150px; background:var(--bg);}
+  .compare-table tr:last-child td{border-bottom:none;}
+
+  /* Comparatif range chart */
+  .chart-wrap{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); padding:24px 26px 10px;}
+  .chart-row{display:grid; grid-template-columns:200px 1fr; align-items:center; gap:16px; padding:9px 0; border-bottom:1px solid #F0F1EE;}
+  .chart-row:last-child{border-bottom:none;}
+  .chart-row .rowlabel{font-size:12.5px; font-weight:500;}
+  .chart-row .rowsub{font-size:10.5px; color:var(--ink-soft); margin-top:1px;}
+  .track{position:relative; height:24px;}
+  .track .axis{position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line);}
+  .track .band{position:absolute; top:6px; height:12px; border-radius:20px; cursor:pointer;}
+  .track .band.tourisme{background:var(--tourisme);}
+  .track .band.utilitaire{background:var(--utilitaire);}
+  .track .marker{position:absolute; top:2px; width:2px; height:20px; background:var(--ink);}
+  .track .alertmark{position:absolute; top:-1px; width:8px; height:8px; border-radius:50%; background:var(--vigilance); border:2px solid var(--surface);}
+  .axis-scale{display:grid; grid-template-columns:200px 1fr; margin-top:6px;}
+  .axis-scale .ticks{position:relative; height:16px;}
+  .axis-scale .ticks span{position:absolute; font-size:10.5px; color:var(--ink-soft); transform:translateX(-50%);}
+
+  .tooltip{
+    position:fixed; background:var(--tooltip-bg); color:#fff; padding:10px 13px;
+    border-radius:8px; font-size:12px; line-height:1.6; pointer-events:none;
+    max-width:250px; z-index:60; display:none; box-shadow:0 8px 24px rgba(0,0,0,.25);
+  }
+  .tooltip b{font-family:'Space Grotesk',sans-serif; font-size:12.5px;}
+
+  .chart-legend{display:flex; gap:20px; margin:18px 2px 4px; flex-wrap:wrap;}
+  .chart-legend .item{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--ink-soft);}
+  .chart-legend .sw{width:16px; height:8px; border-radius:6px;}
+  .chart-legend .sw.line{width:2px; height:14px; border-radius:0; background:var(--ink);}
+  .chart-legend .sw.dot{width:9px;height:9px;border-radius:50%; background:var(--vigilance);}
+
+  /* Rentabilité (margin chart) */
+  .margin-chart-row{display:grid; grid-template-columns:210px 1fr 90px; align-items:center; gap:14px; padding:10px 0; border-bottom:1px solid #F0F1EE;}
+  .margin-chart-row:last-child{border-bottom:none;}
+  .margin-chart-row .rowlabel{font-size:12.5px; font-weight:500;}
+  .margin-chart-row .rowsub{font-size:10.5px; color:var(--ink-soft);}
+  .margin-track{position:relative; height:16px; background:var(--line); border-radius:20px; overflow:hidden;}
+  .margin-track .fill{position:absolute; top:0; left:0; bottom:0; border-radius:20px;}
+  .margin-chart-row .mval{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; text-align:right;}
+
+  /* Methodology */
+  .meth-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px;}
+  .meth-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); padding:18px 20px;}
+  .meth-card h3{font-size:14.5px; margin-bottom:8px;}
+  .meth-card p, .meth-card ul{font-size:13.5px; color:var(--ink-soft); line-height:1.65; margin:0; padding-left:18px;}
+  .note{
+    margin-top:26px; font-size:12.5px; color:var(--ink-soft); line-height:1.7;
+    background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--vigilance);
+    border-radius:var(--radius-s); padding:14px 16px;
+  }
+
+  @media (max-width:900px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%; height:auto; position:relative; flex-direction:row; overflow-x:auto; align-items:center;}
+    .brand{display:none;}
+    nav{flex-direction:row;}
+    .navlabel{display:none;}
+    .sidebar-foot{display:none;}
+    main{padding:24px 18px 90px;}
+    .grid, .meth-grid, .kpis{grid-template-columns:1fr;}
+    .price-grid{grid-template-columns:1fr;}
+    .chart-row, .axis-scale{grid-template-columns:120px 1fr;}
+    .margin-chart-row{grid-template-columns:120px 1fr 70px;}
+    .compare-tray{left:0; flex-wrap:wrap;}
+  }
+  @media (prefers-reduced-motion: reduce){ .section.active{animation:none;} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark"></div>
+      <h1>Recueil Fiabilité</h1>
+      <p>Tourisme &amp; utilitaires — notes, coûts de réparation et rentabilité achat-revente</p>
+    </div>
+    <nav id="nav">
+      <div class="navlabel">Aperçu</div>
+      <button data-section="overview" class="active"><span class="dot"></span>Vue d'ensemble</button>
+      <div class="navlabel">Rubriques</div>
+      <button data-section="catalogue"><span class="dot"></span>Catalogue complet<span class="cnt" id="cnt-all"></span></button>
+      <button data-section="rentabilite"><span class="dot"></span>Rentabilité achat-revente</button>
+      <button data-section="comparateur"><span class="dot"></span>Comparateur<span class="cnt" id="cnt-compare"></span></button>
+      <button data-section="comparatif"><span class="dot"></span>Seuils km achat-revente</button>
+      <div class="navlabel">Référence</div>
+      <button data-section="methodologie"><span class="dot"></span>Méthodologie &amp; critères</button>
+    </nav>
+    <div class="sidebar-foot">Sources : ADAC Pannenstatistik, FN50, JD Power, Consumer Reports, UFC-Que Choisir, Honest John, cotes de marché 2026, retours d'ateliers et de flottes professionnelles.</div>
+  </aside>
+
+  <main>
+
+    <!-- OVERVIEW -->
+    <section class="section active" id="overview">
+      <div class="section-head">
+        <div class="kicker">Vue d'ensemble</div>
+        <h2>Panorama du marché français</h2>
+        <p>225 véhicules et motorisations couvrant la quasi-totalité des segments vendus en France — citadines, compactes, berlines, SUV, premium, électriques, quadricycles sans permis, pick-up, utilitaires, et les principales motorisations diesel Peugeot (HDi/BlueHDi) et Renault (dCi) — notés sur 10, avec coûts de réparation, prix d'achat conseillé et prix de revente visé pour un professionnel de l'achat-revente.</p>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="legend-row">
+        <div class="legend-chip"><span class="sw" style="background:var(--tourisme)"></span>Véhicules de tourisme</div>
+        <div class="legend-chip"><span class="sw" style="background:var(--utilitaire)"></span>Utilitaires professionnels</div>
+        <div class="legend-chip"><span class="sw" style="background:var(--vigilance); border-radius:50%; width:9px; height:9px;"></span>Point de vigilance mécanique</div>
+      </div>
+
+      <div class="section-head" style="margin-bottom:14px;"><h3 style="font-size:15px;">Meilleures opportunités de rentabilité</h3></div>
+      <div class="grid" id="overview-top"></div>
+    </section>
+
+    <!-- CATALOGUE -->
+    <section class="section" id="catalogue">
+      <div class="section-head">
+        <div class="kicker">Rubrique</div>
+        <h2>Catalogue complet</h2>
+        <p>Recherchez, filtrez par catégorie ou segment, triez par note ou par marge, puis cliquez une fiche pour dérouler les caractéristiques, coûts de réparation et prix conseillés. Ajoutez jusqu'à 3 véhicules au comparateur.</p>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search" placeholder="Rechercher un modèle (ex. Golf, Sprinter, Corolla…)">
+        </div>
+        <div class="chipset" id="cat-filters"></div>
+        <select class="sortsel" id="brandsel"><option value="tous">Toutes marques</option></select>
+        <div class="chipset" id="seg-filters"></div>
+        <select class="sortsel" id="sortsel">
+          <option value="margin-desc">Marge estimée : décroissante</option>
+          <option value="score-desc">Note : décroissante</option>
+          <option value="score-asc">Note : croissante</option>
+          <option value="alpha">Alphabétique</option>
+          <option value="alert">Seuil d'alerte km</option>
+          <option value="price-asc">Prix d'achat : croissant</option>
+        </select>
+      </div>
+      <div class="toolbar">
+        <div class="slider-box">Prix d'achat max :
+          <input type="range" id="budget" min="2000" max="80000" step="1000" value="80000">
+          <span id="budget-val">80 000 €</span>
+        </div>
+      </div>
+      <div class="result-count" id="result-count"></div>
+      <div class="grid" id="grid-catalogue"></div>
+    </section>
+
+    <!-- RENTABILITE -->
+    <section class="section" id="rentabilite">
+      <div class="section-head">
+        <div class="kicker">Rubrique</div>
+        <h2>Rentabilité achat-revente</h2>
+        <p>Marge brute estimée (prix de revente visé − prix d'achat conseillé) par véhicule, du plus rentable au moins rentable. Les véhicules à risque mécanique élevé sont signalés : leur marge affichée peut être annulée par une panne coûteuse si l'exemplaire n'est pas contrôlé avant achat.</p>
+      </div>
+      <div class="toolbar">
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-margin" placeholder="Filtrer…">
+        </div>
+        <div class="chipset" id="cat-filters-margin"></div>
+        <select class="sortsel" id="brandsel-margin"><option value="tous">Toutes marques</option></select>
+      </div>
+      <div class="chart-wrap" id="margin-chart-wrap"></div>
+    </section>
+
+    <!-- COMPARATEUR -->
+    <section class="section" id="comparateur">
+      <div class="section-head">
+        <div class="kicker">Rubrique</div>
+        <h2>Comparateur</h2>
+        <p>Comparez côte à côte jusqu'à 3 véhicules ajoutés depuis le catalogue, prix et marge inclus.</p>
+      </div>
+      <div id="compare-view"></div>
+    </section>
+
+    <!-- COMPARATIF ACHAT-REVENTE KM -->
+    <section class="section" id="comparatif">
+      <div class="section-head">
+        <div class="kicker">Rubrique</div>
+        <h2>Seuils km achat-revente</h2>
+        <p>Chaque barre représente la fenêtre d'achat kilométrique recommandée. Le repère vertical marque le seuil de revente conseillé, le point ambre signale le premier poste de vigilance mécanique. Survolez une barre pour le détail.</p>
+      </div>
+      <div class="toolbar">
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-chart" placeholder="Filtrer le graphique…">
+        </div>
+        <div class="chipset" id="cat-filters-chart"></div>
+        <select class="sortsel" id="brandsel-chart"><option value="tous">Toutes marques</option></select>
+      </div>
+      <div class="chart-wrap">
+        <div id="chart-body"></div>
+        <div class="axis-scale"><div></div><div class="ticks" id="axis-ticks"></div></div>
+        <div class="chart-legend">
+          <div class="item"><span class="sw" style="background:var(--tourisme)"></span>Zone d'achat — tourisme</div>
+          <div class="item"><span class="sw" style="background:var(--utilitaire)"></span>Zone d'achat — utilitaire</div>
+          <div class="item"><span class="sw line"></span>Seuil de revente conseillé</div>
+          <div class="item"><span class="sw dot"></span>Premier seuil de vigilance</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- METHODOLOGIE -->
+    <section class="section" id="methodologie">
+      <div class="section-head">
+        <div class="kicker">Référence</div>
+        <h2>Méthodologie &amp; critères</h2>
+        <p>Comment lire ce recueil, ses limites, et quels critères complémentaires envisager selon votre activité.</p>
+      </div>
+      <div class="meth-grid">
+        <div class="meth-card">
+          <h3>Critères retenus par véhicule</h3>
+          <ul>
+            <li>Note de fiabilité sur 10, croisée entre études constructeur et retours utilisateurs</li>
+            <li>Années / génération concernées, caractéristiques techniques</li>
+            <li>Seuil d'alerte km et coûts de réparation détaillés par type de panne</li>
+            <li>Prix d'achat conseillé et prix de revente visé (cote de marché 2026)</li>
+            <li>Marge brute estimée pour un professionnel de l'achat-revente</li>
+          </ul>
+        </div>
+        <div class="meth-card">
+          <h3>Critères complémentaires proposés</h3>
+          <ul>
+            <li>Densité du réseau après-vente et disponibilité pièces</li>
+            <li>Vitesse de rotation du stock (délai moyen de revente par segment)</li>
+            <li>Valeur résiduelle à 3 et 5 ans</li>
+            <li>Compatibilité ZFE (Crit'Air) selon la zone d'exploitation</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note">Ce recueil couvre 225 entrées représentatives de l'essentiel du marché français — citadines, compactes, berlines, SUV, premium, électriques, quadricycles sans permis, pick-up et utilitaires, avec les gammes Peugeot et Renault couvertes de façon quasi complète (historique et actuelle), ainsi qu'une sélection de motorisations diesel à part entière (Peugeot/Citroën HDi et BlueHDi, Renault dCi) dont la fiabilité varie fortement d'un bloc moteur à l'autre indépendamment de la carrosserie — mais ne prétend pas à l'exhaustivité absolue de chaque motorisation, finition ou millésime : certaines déclinaisons rares ou très récentes (moins de 12 mois de recul) ne figurent pas ici faute de retours d'usage suffisants. Les prix d'achat et de revente sont des fourchettes indicatives basées sur les cotes de marché 2026 pour un véhicule d'occasion en bon état général au kilométrage conseillé (pour les entrées « motorisation », il s'agit du prix typique d'un véhicule équipé de ce bloc moteur) ; la marge affichée est brute, avant frais de remise en état, de contrôle technique, de transport et de commission. Sur les véhicules signalés à vigilance élevée, un diagnostic mécanique complet avant achat est indispensable : une seule panne majeure non anticipée peut dépasser la marge brute totale.</div>
+    </section>
+
+  </main>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<div class="compare-tray" id="compare-tray">
+  <div class="chips" id="tray-chips"></div>
+  <button class="clear" id="tray-clear">Tout retirer</button>
+  <button class="go" id="tray-go">Comparer →</button>
+</div>
+
+<script>
+/* =========================================================
+   DONNÉES
+   Prix en euros, fourchettes indicatives (cote de marché 2026)
+   ========================================================= */
+const DATA = [
+  {id:1, cat:"tourisme", seg:"compacte", name:"Toyota Corolla / Yaris (hybride)", era:"2018–2024, 12ᵉ-13ᵉ génération", score:9,
+   tech:"Hybride essence 1.8/2.0 Dynamic Force, transmission e-CVT, distribution par chaîne.",
+   alertKm:150, alertText:"150 000 km : contrôle du pack batterie hybride (diagnostic conseillé, remplacement rare). 180 000 km : injecteurs, sondes lambda.",
+   repairCosts:["Amortisseurs/silentblocs (~120 000 km) : 300–500 €","Injecteurs (~180 000 km) : 250–450 € l'unité","Pack batterie hybride (rare) : 1 800–2 500 €"],
+   achat:[60,100], revente:180, watch:"Aucune vigilance majeure",
+   prixAchat:[9000,12500], prixRevente:[15000,17500]},
+
+  {id:2, cat:"tourisme", seg:"premium", name:"Lexus IS / NX / RX", era:"2015–2023, hybrides", score:9,
+   tech:"Mécaniques hybrides partagées avec Toyota, finition premium, suspension pneumatique en haut de gamme.",
+   alertKm:160, alertText:"160 000 km : suspension pneumatique sur versions équipées. Sinon robustesse identique à Toyota.",
+   repairCosts:["Boudin de suspension pneumatique : 800–1 500 € / coin","Capteurs de niveau : 150–300 €"],
+   achat:[70,110], revente:150, watch:"Suspension pneumatique",
+   prixAchat:[15000,20000], prixRevente:[22000,26500]},
+
+  {id:3, cat:"tourisme", seg:"compacte", name:"Mazda3 / CX-5 (Skyactiv)", era:"2017–2023", score:8,
+   tech:"Essence Skyactiv-G ou diesel Skyactiv-D, distribution par chaîne, boîte manuelle ou auto 6 rapports.",
+   alertKm:130, alertText:"130 000 km : vanne EGR à surveiller (diesel). 140 000 km : embrayage (versions manuelles).",
+   repairCosts:["Embrayage : 700–1 000 €","Vanne EGR : 350–600 €"],
+   achat:[50,90], revente:150, watch:"Embrayage, EGR (diesel)",
+   prixAchat:[8000,11000], prixRevente:[12000,14500]},
+
+  {id:4, cat:"tourisme", seg:"compacte", name:"Honda Civic / CR-V", era:"2016–2023", score:8,
+   tech:"Essence atmosphérique 1.8/2.0 i-VTEC ou 1.5 turbo, boîte manuelle ou CVT.",
+   alertKm:130, alertText:"130 000 km (versions turbo) : joint de culasse, rare mais documenté. Atmosphérique : aucun seuil critique avant 250 000 km.",
+   repairCosts:["Embrayage : 500–800 €","Joint de culasse (turbo, rare) : 1 200–1 800 €"],
+   achat:[60,100], revente:180, watch:"Joint de culasse (versions turbo)",
+   prixAchat:[8500,12000], prixRevente:[13000,16000]},
+
+  {id:5, cat:"tourisme", seg:"citadine", name:"Dacia Sandero / Duster", era:"2018–2024", score:7,
+   tech:"Mécaniques Renault-Nissan, dCi 1.5 diesel, TCe essence turbo, boîtes manuelles robustes.",
+   alertKm:100, alertText:"100 000 km (TCe) : turbo, distribution impérative. 120 000 km (dCi) : injecteurs, vanne EGR.",
+   repairCosts:["Distribution (kit complet) : 300–500 €","Turbo : 500–900 €","Injecteurs : 200–400 € l'unité"],
+   achat:[40,80], revente:150, watch:"Turbo, distribution",
+   prixAchat:[5000,7500], prixRevente:[8500,10800]},
+
+  {id:6, cat:"tourisme", seg:"compacte", name:"Skoda Octavia", era:"2017–2023", score:7,
+   tech:"Bloc VW Group, essence TSI ou diesel TDI, boîte manuelle ou DSG.",
+   alertKm:100, alertText:"100 000 km : tension de chaîne sur certains TSI. 150 000 km : mécatronique DSG. 180 000 km (TDI) : EGR, FAP.",
+   repairCosts:["Mécatronique DSG : 600–1 200 €","Chaîne de distribution TSI : 800–1 400 €","FAP : 900–1 500 €"],
+   achat:[60,100], revente:160, watch:"Mécatronique DSG",
+   prixAchat:[7500,10500], prixRevente:[11500,14200]},
+
+  {id:7, cat:"tourisme", seg:"suv", name:"Subaru Forester / Outback", era:"2018–2024", score:7,
+   tech:"Moteur boxer atmosphérique, transmission intégrale permanente, boîte CVT Lineartronic.",
+   alertKm:150, alertText:"150 000 km : vidange CVT impérative tous les 60 000 km sous peine de casse coûteuse.",
+   repairCosts:["Vidange CVT spécifique : 150–250 € (préventif)","Remplacement CVT (négligée) : 3 000–4 000 €"],
+   achat:[50,90], revente:null, watch:"Vidange CVT impérative",
+   prixAchat:[8000,11000], prixRevente:[12000,14800]},
+
+  {id:8, cat:"tourisme", seg:"suv", name:"Toyota RAV4 Hybride", era:"2019–2024", score:9,
+   tech:"Hybride essence 2.5L, transmission intégrale E-Four sur versions AWD, e-CVT.",
+   alertKm:170, alertText:"170 000 km : rien de majeur signalé, contrôle batterie hybride conseillé au-delà.",
+   repairCosts:["Amortisseurs : 350–550 € le train","Freins (usage SUV) : 300–450 €"],
+   achat:[70,110], revente:200, watch:"Aucune vigilance majeure",
+   prixAchat:[14000,18000], prixRevente:[19500,23000]},
+
+  {id:9, cat:"tourisme", seg:"citadine", name:"Toyota Yaris Cross", era:"2021–2024", score:9,
+   tech:"Hybride essence 1.5, e-CVT, plateforme GA-B partagée avec Yaris.",
+   alertKm:150, alertText:"150 000 km : contrôle général batterie et injecteurs, sans anomalie fréquente signalée.",
+   repairCosts:["Entretien courant : très faible sur toute la durée de vie"],
+   achat:[40,80], revente:160, watch:"Aucune vigilance majeure",
+   prixAchat:[9000,12500], prixRevente:[14000,16800]},
+
+  {id:10, cat:"tourisme", seg:"suv", name:"Kia Sportage / Ceed", era:"2018–2024", score:8,
+   tech:"Essence T-GDi turbo ou diesel CRDi, garantie constructeur 7 ans transférable en partie à l'occasion.",
+   alertKm:120, alertText:"120 000 km : embrayage sec sur boîte DCT à double embrayage. 150 000 km : turbo.",
+   repairCosts:["Embrayage DCT : 900–1 400 €","Turbo : 700–1 100 €"],
+   achat:[50,90], revente:170, watch:"Embrayage DCT",
+   prixAchat:[9000,13000], prixRevente:[14000,17800]},
+
+  {id:11, cat:"tourisme", seg:"suv", name:"Hyundai Tucson / i30", era:"2018–2024", score:7,
+   tech:"Essence GDi ou diesel CRDi 1.6, boîte manuelle ou DCT.",
+   alertKm:120, alertText:"120 000 km : embrayage sur boîte manuelle à vérifier. 140 000 km : turbo diesel.",
+   repairCosts:["Embrayage : 700–1 000 €","Turbo diesel : 700–1 200 €"],
+   achat:[50,90], revente:160, watch:"Embrayage, turbo diesel",
+   prixAchat:[8500,12000], prixRevente:[13000,16200]},
+
+  {id:12, cat:"tourisme", seg:"suv", name:"Nissan Qashqai", era:"2017–2024", score:6,
+   tech:"Essence DIG-T turbo ou e-Power hybride série, boîte manuelle, DCT ou CVT Xtronic.",
+   alertKm:110, alertText:"110 000 km : boîte CVT Xtronic à surveiller (vidange spécifique impérative). 140 000 km : turbo.",
+   repairCosts:["Vidange CVT préventive : 200–300 €","Réparation CVT négligée : 2 500–3 500 €","Turbo : 700–1 100 €"],
+   achat:[50,90], revente:150, watch:"Boîte CVT Xtronic",
+   prixAchat:[7500,11000], prixRevente:[11500,14500]},
+
+  {id:13, cat:"tourisme", seg:"compacte", name:"Volkswagen Golf / Polo (TSI)", era:"2017–2024", score:6,
+   tech:"Essence TSI turbo, distribution par chaîne, boîte manuelle ou DSG.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution TSI à surveiller (tension, bruit). 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution TSI : 800–1 500 €","Mécatronique DSG : 600–1 200 €","Bobines d'allumage : 80–150 € l'unité"],
+   achat:[50,90], revente:140, watch:"Chaîne de distribution, DSG",
+   prixAchat:[7000,10500], prixRevente:[11000,13800]},
+
+  {id:14, cat:"tourisme", seg:"suv", name:"Volkswagen Tiguan / T-Roc", era:"2018–2024", score:6,
+   tech:"Essence TSI ou diesel TDI, boîte manuelle ou DSG, 4Motion en option.",
+   alertKm:110, alertText:"110 000 km : chaîne de distribution TSI. 150 000 km : mécatronique DSG, EGR (TDI).",
+   repairCosts:["Chaîne de distribution : 900–1 600 €","Mécatronique DSG : 700–1 300 €"],
+   achat:[60,100], revente:150, watch:"Chaîne de distribution, DSG",
+   prixAchat:[10000,14000], prixRevente:[15000,18800]},
+
+  {id:15, cat:"tourisme", seg:"premium", name:"Audi A3 / Q3", era:"2018–2024", score:6,
+   tech:"Bloc VW Group premium, essence TFSI ou diesel TDI, boîte manuelle ou S tronic.",
+   alertKm:110, alertText:"110 000 km : chaîne de distribution. 150 000 km : mécatronique S tronic, capteurs multiples.",
+   repairCosts:["Mécatronique S tronic : 900–1 500 €","Chaîne de distribution : 900–1 600 €","Capteurs/électronique divers : 150–400 € l'unité"],
+   achat:[60,100], revente:150, watch:"Chaîne de distribution, boîte S tronic",
+   prixAchat:[11000,16000], prixRevente:[16000,20500]},
+
+  {id:16, cat:"tourisme", seg:"compacte", name:"Seat Leon / Ibiza", era:"2017–2023", score:6,
+   tech:"Bloc VW Group, essence TSI, boîte manuelle ou DSG.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution TSI. 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution : 800–1 400 €","Mécatronique DSG : 600–1 200 €"],
+   achat:[50,90], revente:140, watch:"Chaîne de distribution, DSG",
+   prixAchat:[6500,9500], prixRevente:[10000,12800]},
+
+  {id:17, cat:"tourisme", seg:"premium", name:"BMW Série 1 / 3 / X1", era:"2018–2024", score:6,
+   tech:"Essence turbo ou diesel turbo, boîte manuelle ou automatique ZF, propulsion ou xDrive.",
+   alertKm:100, alertText:"100 000 km : injecteurs diesel, vanne EGR. 140 000 km : turbo, capteurs de suspension pilotée.",
+   repairCosts:["Injecteurs diesel : 300–600 € l'unité","Turbo : 900–1 600 €","Amortisseurs pilotés : 500–900 € / coin"],
+   achat:[60,100], revente:150, watch:"Injecteurs, turbo, électronique",
+   prixAchat:[11000,16000], prixRevente:[15500,19800]},
+
+  {id:18, cat:"tourisme", seg:"premium", name:"Mercedes Classe A / GLA (moteur 1.3 partagé)", era:"2019–2024", score:5,
+   tech:"Essence 1.3L développé avec Renault, boîte manuelle ou DCT 7G.",
+   alertKm:90, alertText:"90 000 km : joint de culasse défaillant documenté sur ce bloc. 130 000 km : embrayage DCT.",
+   repairCosts:["Joint de culasse : 5 000–7 000 €","Embrayage DCT : 1 000–1 600 €"],
+   achat:[40,80], revente:120, watch:"Joint de culasse — vigilance élevée",
+   prixAchat:[9000,13000], prixRevente:[12000,16000],
+   risk:"Un seul joint de culasse (5 000–7 000 €) efface la marge brute totale. Achat déconseillé sans contrôle moteur (compression, refroidissement) par un mécanicien indépendant."},
+
+  {id:19, cat:"tourisme", seg:"citadine", name:"Peugeot 208 / 2008 / 308 (PureTech)", era:"2019–2024", score:5,
+   tech:"Essence PureTech 3 cylindres turbo, distribution par chaîne courte, boîte manuelle ou EAT8.",
+   alertKm:80, alertText:"80 000 km : distension de chaîne de distribution PureTech, bruit moteur caractéristique.",
+   repairCosts:["Remplacement chaîne de distribution PureTech : 2 000–3 500 €","Turbo : 700–1 200 €"],
+   achat:[30,70], revente:110, watch:"Chaîne de distribution PureTech — vigilance élevée",
+   prixAchat:[6000,9000], prixRevente:[8500,11500],
+   risk:"Vérifier le bruit moteur à froid et l'historique de remplacement de chaîne avant achat : une distension non anticipée absorbe la quasi-totalité de la marge."},
+
+  {id:20, cat:"tourisme", seg:"citadine", name:"Citroën C3 / C4 / C5 Aircross (PureTech)", era:"2019–2024", score:5,
+   tech:"Essence PureTech partagé Stellantis, suspensions à butées hydrauliques sur C5 Aircross.",
+   alertKm:80, alertText:"80 000 km : distension de chaîne PureTech. 100 000 km : suspensions hydrauliques (C5 Aircross).",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €","Suspension hydraulique : 400–700 € / coin"],
+   achat:[30,70], revente:110, watch:"Chaîne de distribution PureTech",
+   prixAchat:[6000,9000], prixRevente:[8500,11500],
+   risk:"Même vigilance chaîne PureTech que Peugeot/Opel : contrôle du bruit moteur et de l'historique impératif."},
+
+  {id:21, cat:"tourisme", seg:"citadine", name:"Opel Corsa / Astra / Crossland", era:"2019–2024", score:5,
+   tech:"Plateforme et moteurs PureTech partagés Stellantis depuis le rachat par PSA.",
+   alertKm:80, alertText:"80 000 km : distension de chaîne PureTech identique aux Peugeot/Citroën équivalents.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €"],
+   achat:[30,70], revente:110, watch:"Chaîne de distribution PureTech",
+   prixAchat:[5500,8500], prixRevente:[8000,10800]},
+
+  {id:22, cat:"tourisme", seg:"citadine", name:"Renault Clio / Captur / Mégane", era:"2019–2024", score:6,
+   tech:"Essence TCe turbo ou diesel Blue dCi, boîte manuelle ou EDC.",
+   alertKm:100, alertText:"100 000 km : turbo TCe, injecteurs dCi. 130 000 km : embrayage EDC.",
+   repairCosts:["Turbo TCe : 600–1 000 €","Embrayage EDC : 800–1 300 €"],
+   achat:[30,70], revente:130, watch:"Turbo, embrayage EDC",
+   prixAchat:[6500,9500], prixRevente:[9500,12500]},
+
+  {id:23, cat:"tourisme", seg:"berline", name:"Renault Scénic / Espace", era:"2018–2023", score:5,
+   tech:"Diesel Blue dCi ou hybride E-Tech, boîte manuelle, EDC ou multi-mode.",
+   alertKm:110, alertText:"110 000 km : injecteurs, FAP. 140 000 km : boîte EDC sur versions concernées.",
+   repairCosts:["FAP : 900–1 500 €","Boîte EDC : 900–1 500 €"],
+   achat:[40,80], revente:110, watch:"FAP, boîte EDC",
+   prixAchat:[7000,10000], prixRevente:[9500,12500]},
+
+  {id:24, cat:"tourisme", seg:"citadine", name:"Fiat 500 / Panda / Tipo", era:"2018–2024", score:5,
+   tech:"Essence atmosphérique ou turbo TwinAir, mécanique simple mais finitions fragiles.",
+   alertKm:80, alertText:"80 000 km : embrayage, capteurs électriques divers (vitres, verrouillage).",
+   repairCosts:["Embrayage : 500–800 €","Electronique/capteurs : 100–300 € par intervention"],
+   achat:[20,60], revente:100, watch:"Électronique, embrayage",
+   prixAchat:[4000,6500], prixRevente:[6000,8500]},
+
+  {id:25, cat:"tourisme", seg:"premium", name:"Alfa Romeo Giulia / Stelvio", era:"2018–2024", score:4,
+   tech:"Essence turbo ou diesel Multijet, propulsion ou Q4, électronique embarquée dense.",
+   alertKm:80, alertText:"80 000 km : pannes électroniques répétées (capteurs, calculateurs). Coût des pièces élevé.",
+   repairCosts:["Diagnostic/réparation électronique : 300–800 € par intervention","Suspension pilotée : 600–1 000 € / coin"],
+   achat:[40,80], revente:90, watch:"Électronique fragile — vigilance élevée",
+   prixAchat:[12000,17000], prixRevente:[14000,19000],
+   risk:"Marge nominale correcte mais volatile : les pannes électroniques répétées peuvent générer plusieurs interventions successives. Réserver aux professionnels disposant d'un accès diagnostic constructeur."},
+
+  {id:26, cat:"tourisme", seg:"premium", name:"DS3 / DS4 / DS7", era:"2019–2024", score:5,
+   tech:"Moteurs PureTech ou BlueHDi partagés Stellantis, finition premium.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech comme les Peugeot/Citroën équivalents.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €","Écrans/électronique embarquée : 200–500 €"],
+   achat:[30,70], revente:100, watch:"Chaîne de distribution PureTech",
+   prixAchat:[8000,12000], prixRevente:[10500,14500]},
+
+  {id:27, cat:"tourisme", seg:"citadine", name:"Ford Fiesta / Focus / Puma", era:"2018–2024", score:6,
+   tech:"Essence EcoBoost turbo 3 cylindres, boîte manuelle ou automatique.",
+   alertKm:100, alertText:"100 000 km : courroie de distribution humide EcoBoost (certains blocs), embrayage.",
+   repairCosts:["Courroie de distribution en bain d'huile : 900–1 500 € (si dégradation prématurée)","Embrayage : 500–800 €"],
+   achat:[40,80], revente:130, watch:"Courroie de distribution en bain d'huile",
+   prixAchat:[6500,10000], prixRevente:[9500,13000]},
+
+  {id:28, cat:"tourisme", seg:"suv", name:"Ford Kuga PHEV", era:"2020–2023", score:4,
+   tech:"Hybride rechargeable essence + batterie, boîte automatique CVT.",
+   alertKm:60, alertText:"60 000 km : risque documenté d'incendie de la batterie haute tension, rappel constructeur à vérifier impérativement.",
+   repairCosts:["Remplacement pack batterie HT : 8 000–12 000 €"],
+   achat:[30,60], revente:80, watch:"Batterie haute tension — vigilance élevée",
+   prixAchat:[10000,14000], prixRevente:[11000,15000],
+   risk:"Ne jamais acheter sans vérifier que le rappel constructeur batterie a été appliqué (numéro de châssis). Sans cette vérification, le risque financier dépasse largement la marge potentielle."},
+
+  {id:29, cat:"tourisme", seg:"suv", name:"Volvo XC40 / XC60", era:"2018–2024", score:6,
+   tech:"Essence T-turbo ou diesel D4, boîte automatique 8 rapports, plateforme partagée Geely.",
+   alertKm:100, alertText:"100 000 km : turbo, capteurs de suspension. 140 000 km : boîte automatique.",
+   repairCosts:["Turbo : 900–1 500 €","Capteurs de suspension : 200–400 € l'unité"],
+   achat:[50,90], revente:140, watch:"Turbo, capteurs",
+   prixAchat:[11000,16000], prixRevente:[15000,19500]},
+
+  {id:30, cat:"tourisme", seg:"premium", name:"Range Rover Evoque / Velar", era:"2018–2024", score:3,
+   tech:"Moteur Ingenium essence ou diesel, distribution par chaîne longue, boîte automatique.",
+   alertKm:70, alertText:"70 000 km : distension de la chaîne de distribution Ingenium, panne majeure documentée.",
+   repairCosts:["Remplacement chaîne de distribution Ingenium (+ moteur si dégâts) : 9 000–15 000 €"],
+   achat:[30,70], revente:70, watch:"Chaîne de distribution Ingenium — vigilance très élevée",
+   prixAchat:[12000,18000], prixRevente:[13000,19000],
+   risk:"Achat-revente déconseillé sans expertise moteur poussée : une seule panne de chaîne Ingenium (9 000–15 000 €) dépasse le prix d'achat du véhicule et annule toute marge."},
+
+  {id:31, cat:"tourisme", seg:"premium", name:"Jaguar F-Pace", era:"2018–2023", score:4,
+   tech:"Essence turbo ou diesel Ingenium, propulsion ou AWD, boîte automatique ZF.",
+   alertKm:80, alertText:"80 000 km : électronique embarquée (écrans, calculateurs), suspension pneumatique.",
+   repairCosts:["Suspension pneumatique : 800–1 400 € / coin","Diagnostic/réparation électronique : 300–700 €"],
+   achat:[40,80], revente:80, watch:"Électronique, suspension pneumatique",
+   prixAchat:[13000,18000], prixRevente:[14000,19000],
+   risk:"Marge fine et volatile : prévoir un budget de remise en état avant mise en vente, faute de quoi le délai d'écoulement s'allonge fortement."},
+
+  {id:32, cat:"tourisme", seg:"premium", name:"Tesla Model 3 / Y", era:"2019–2024", score:6,
+   tech:"100 % électrique, moteur(s) synchrone(s) à aimants permanents, pas de boîte de vitesses ni de vidange.",
+   alertKm:150, alertText:"150 000 km : dégradation batterie modérée (généralement <15 %), suspension et carrosserie à surveiller.",
+   repairCosts:["Pack batterie hors garantie (rare) : 10 000–16 000 €","Carrosserie/panneaux (ajustements) : 200–600 €"],
+   achat:[40,80], revente:130, watch:"Logiciel, ajustements carrosserie",
+   prixAchat:[14000,19000], prixRevente:[17000,21500]},
+
+  {id:33, cat:"tourisme", seg:"citadine", name:"Suzuki Vitara / Swift", era:"2017–2024", score:7,
+   tech:"Essence Boosterjet turbo ou hybride léger, boîte manuelle ou automatique, 4x4 AllGrip en option.",
+   alertKm:110, alertText:"110 000 km : embrayage, courroie accessoires. Mécanique simple et éprouvée.",
+   repairCosts:["Embrayage : 500–800 €","Courroie d'accessoires : 150–300 €"],
+   achat:[30,70], revente:130, watch:"Aucune vigilance majeure",
+   prixAchat:[6000,9000], prixRevente:[9000,11800]},
+
+  {id:34, cat:"utilitaire", seg:"grand-fourgon", name:"Mercedes Sprinter", era:"2018–2024, OM 651 / OM 654 CDI", score:9,
+   tech:"Diesel 2.0/2.1L CDI, boîte manuelle 6 rapports ou automatique 9G-Tronic, PTAC 3,5 à 5 t.",
+   alertKm:200, alertText:"200 000 km : injecteurs, turbo. 300 000 km : embrayage sur versions manuelles fortement sollicitées.",
+   repairCosts:["Injecteurs : 400–700 € l'unité","Turbo : 800–1 500 €","Embrayage : 900–1 400 €"],
+   achat:[100,180], revente:300, watch:"Aucune vigilance majeure",
+   prixAchat:[14000,20000], prixRevente:[20000,26500]},
+
+  {id:35, cat:"utilitaire", seg:"fourgon-compact", name:"Volkswagen Transporter T6 / T6.1", era:"2016–2024", score:7,
+   tech:"Diesel 2.0 TDI 90 à 199 ch, boîte manuelle ou DSG, traction ou 4Motion.",
+   alertKm:150, alertText:"150 000 km : mécatronique DSG si boîte automatique. 180 000 km : vanne EGR, FAP.",
+   repairCosts:["Mécatronique DSG : 800–1 200 €","FAP : 900–1 500 €"],
+   achat:[80,140], revente:null, watch:"Mécatronique DSG",
+   prixAchat:[12000,17000], prixRevente:[17000,21800]},
+
+  {id:36, cat:"utilitaire", seg:"fourgon-moyen", name:"Renault Trafic III", era:"2021–2024, Blue dCi 120-170", score:6,
+   tech:"Diesel Blue dCi, boîte manuelle 6 rapports ou EDC automatique.",
+   alertKm:90, alertText:"90 000 km : compresseur de climatisation fragile. 130 000 km : turbo et distribution.",
+   repairCosts:["Compresseur de climatisation : 750–850 €","Turbo : 700–1 100 €","Distribution : 400–700 €"],
+   achat:[60,100], revente:180, watch:"Compresseur de climatisation",
+   prixAchat:[10000,14000], prixRevente:[14000,17800]},
+
+  {id:37, cat:"utilitaire", seg:"fourgon-moyen", name:"Ford Transit Custom", era:"2018–2024, 2.0 TDCi EcoBlue", score:7,
+   tech:"Diesel EcoBlue 2.0, boîte manuelle ou automatique 10 rapports, traction ou propulsion selon version.",
+   alertKm:150, alertText:"150 000 km : embrayage, injecteurs. Moteur documenté au-delà de 250 000 km sans intervention lourde.",
+   repairCosts:["Embrayage : 700–1 100 €","Injecteurs : 350–600 € l'unité"],
+   achat:[80,130], revente:220, watch:"Embrayage, injecteurs",
+   prixAchat:[11000,15000], prixRevente:[16000,20800]},
+
+  {id:38, cat:"utilitaire", seg:"fourgon-moyen", name:"Peugeot Expert / Citroën Jumpy / Opel Vivaro", era:"2019–2024, BlueHDi 145-165", score:6,
+   tech:"Diesel BlueHDi partagé (plateforme Stellantis-Toyota), boîte manuelle ou EAT8.",
+   alertKm:130, alertText:"130 000 km : FAP, vanne EGR. 160 000 km : risque de joint de culasse sur versions 165 ch.",
+   repairCosts:["FAP : 900–1 500 €","Joint de culasse (165 ch) : 1 500–2 500 €"],
+   achat:[60,100], revente:160, watch:"Joint de culasse (165 ch)",
+   prixAchat:[9000,13000], prixRevente:[13000,16800],
+   risk:"Sur les versions 165 ch, exiger l'historique de refroidissement (liquide, ventilateur) avant achat pour écarter le risque de joint de culasse."},
+
+  {id:39, cat:"utilitaire", seg:"grand-fourgon", name:"Iveco Daily", era:"2019–2024, 3.0L diesel", score:7,
+   tech:"Diesel 3.0L, boîte manuelle ou automatique Hi-Matic, châssis robuste, PTAC jusqu'à 7 t.",
+   alertKm:200, alertText:"200 000 km : injecteurs, turbo. Boîte de vitesses réputée quasiment infatigable.",
+   repairCosts:["Injecteurs : 400–700 € l'unité","Turbo : 900–1 500 €"],
+   achat:[100,160], revente:null, watch:"Aucune vigilance majeure",
+   prixAchat:[13000,18000], prixRevente:[18000,23000]},
+
+  {id:40, cat:"utilitaire", seg:"grand-fourgon", name:"Fiat Ducato / Citroën Jumper / Peugeot Boxer", era:"2019–2024, Multijet 2.2", score:4,
+   tech:"Diesel Multijet 2.2, boîte manuelle 6 rapports.",
+   alertKm:150, alertText:"150 000 km : boîte de vitesses fragile. Taux de pannes plus élevé que la moyenne sur certains millésimes.",
+   repairCosts:["Boîte de vitesses : 1 800–2 800 €","Vidange rapprochée (préventif, 15 000 km) : 120–200 € par intervention"],
+   achat:[50,90], revente:140, watch:"Boîte de vitesses — vigilance élevée",
+   prixAchat:[8000,12000], prixRevente:[11000,15000],
+   risk:"Faire tester la boîte sur route (passages de rapports à chaud) avant achat : une boîte HS (1 800–2 800 €) réduit la marge à peu ou rien."},
+
+  {id:41, cat:"utilitaire", seg:"fourgonnette", name:"Renault Kangoo", era:"2021–2024, Blue dCi 95", score:6,
+   tech:"Diesel Blue dCi 95, boîte manuelle.",
+   alertKm:100, alertText:"100 000 km : injecteurs, FAP.",
+   repairCosts:["Injecteurs : 300–500 € l'unité","FAP : 800–1 300 €"],
+   achat:[40,80], revente:150, watch:"Injecteurs, FAP",
+   prixAchat:[6000,9000], prixRevente:[9000,11800]},
+
+  {id:42, cat:"utilitaire", seg:"fourgonnette", name:"Citroën Berlingo / Peugeot Partner", era:"2018–2024, BlueHDi", score:6,
+   tech:"Diesel BlueHDi 1.5 partagé Stellantis, boîte manuelle ou EAT8.",
+   alertKm:110, alertText:"110 000 km : FAP, vanne EGR, injecteurs.",
+   repairCosts:["FAP : 800–1 300 €","Injecteurs : 300–550 € l'unité"],
+   achat:[40,80], revente:130, watch:"FAP, injecteurs",
+   prixAchat:[6500,9500], prixRevente:[9500,12500]},
+
+  {id:43, cat:"utilitaire", seg:"fourgon-moyen", name:"Toyota Proace", era:"2019–2024", score:7,
+   tech:"Base Stellantis partagée avec Expert/Jumpy, motorisation et contrôle qualité Toyota.",
+   alertKm:140, alertText:"140 000 km : FAP, vanne EGR — seuils légèrement supérieurs à la base Stellantis grâce au contrôle qualité Toyota.",
+   repairCosts:["FAP : 900–1 400 €","Vanne EGR : 400–700 €"],
+   achat:[50,90], revente:160, watch:"FAP, EGR",
+   prixAchat:[9000,13000], prixRevente:[13500,17200]},
+
+  {id:44, cat:"utilitaire", seg:"fourgon-compact", name:"Mercedes Vito / Citan", era:"2018–2024", score:6,
+   tech:"Diesel CDI, boîte manuelle ou automatique 9G-Tronic (Vito), base Renault Kangoo pour le Citan.",
+   alertKm:130, alertText:"130 000 km : injecteurs, turbo (Vito). 100 000 km : injecteurs (Citan, base Renault).",
+   repairCosts:["Injecteurs : 350–650 € l'unité","Turbo (Vito) : 800–1 400 €"],
+   achat:[60,100], revente:150, watch:"Injecteurs, turbo",
+   prixAchat:[9000,13000], prixRevente:[13000,16800]},
+
+  {id:45, cat:"utilitaire", seg:"grand-fourgon", name:"Volkswagen Crafter / MAN TGE", era:"2019–2024", score:7,
+   tech:"Diesel 2.0 TDI Bi-turbo, boîte manuelle ou automatique 8 rapports, traction ou 4Motion.",
+   alertKm:170, alertText:"170 000 km : injecteurs, turbo. Châssis et carrosserie réputés très durables.",
+   repairCosts:["Injecteurs : 400–700 € l'unité","Turbo : 900–1 600 €"],
+   achat:[80,130], revente:200, watch:"Injecteurs, turbo",
+   prixAchat:[13000,18000], prixRevente:[18000,23800]},
+
+  {id:46, cat:"tourisme", seg:"citadine", name:"Renault Twingo", era:"2014–2023", score:6,
+   tech:"Essence SCe atmosphérique ou TCe turbo, propulsion arrière (génération III), boîte manuelle ou EDC.",
+   alertKm:90, alertText:"90 000 km : embrayage EDC, capteurs électriques. Mécanique simple sur versions SCe atmosphériques.",
+   repairCosts:["Embrayage EDC : 700–1 100 €","Bobines/capteurs : 100–250 € l'unité"],
+   achat:[30,60], revente:110, watch:"Embrayage EDC", prixAchat:[4000,6500], prixRevente:[6500,9000]},
+
+  {id:47, cat:"tourisme", seg:"citadine", name:"Peugeot 108 / Toyota Aygo", era:"2014–2022", score:7,
+   tech:"Essence 1.0 atmosphérique VVT-i partagé Toyota-PSA, boîte manuelle ou automatisée.",
+   alertKm:100, alertText:"100 000 km : embrayage sur boîte automatisée, sinon mécanique très simple et endurante.",
+   repairCosts:["Embrayage : 500–800 €","Courroie accessoires : 120–250 €"],
+   achat:[30,60], revente:130, watch:"Aucune vigilance majeure", prixAchat:[4500,7000], prixRevente:[7500,10000]},
+
+  {id:48, cat:"tourisme", seg:"citadine", name:"Citroën C1", era:"2014–2021", score:7,
+   tech:"Base identique à la Peugeot 108/Toyota Aygo, essence 1.0 VVT-i.",
+   alertKm:100, alertText:"100 000 km : embrayage sur boîte automatisée.",
+   repairCosts:["Embrayage : 500–800 €"],
+   achat:[30,60], revente:130, watch:"Aucune vigilance majeure", prixAchat:[4200,6800], prixRevente:[7200,9800]},
+
+  {id:49, cat:"tourisme", seg:"citadine", name:"Hyundai i10", era:"2019–2024", score:7,
+   tech:"Essence atmosphérique 1.0/1.2, boîte manuelle ou AMT, garantie constructeur longue.",
+   alertKm:90, alertText:"90 000 km : embrayage AMT, injecteurs.",
+   repairCosts:["Embrayage AMT : 600–900 €","Injecteurs : 200–350 € l'unité"],
+   achat:[30,60], revente:120, watch:"Embrayage AMT", prixAchat:[5000,7500], prixRevente:[8000,10500]},
+
+  {id:50, cat:"tourisme", seg:"citadine", name:"Kia Picanto", era:"2018–2024", score:7,
+   tech:"Essence atmosphérique 1.0/1.2, garantie 7 ans transférable en partie.",
+   alertKm:90, alertText:"90 000 km : embrayage, injecteurs.",
+   repairCosts:["Embrayage : 500–800 €","Injecteurs : 200–350 € l'unité"],
+   achat:[30,60], revente:120, watch:"Aucune vigilance majeure", prixAchat:[5200,7800], prixRevente:[8200,10800]},
+
+  {id:51, cat:"tourisme", seg:"citadine", name:"Volkswagen up!", era:"2016–2023", score:6,
+   tech:"Essence atmosphérique 1.0 MPI ou turbo TSI, boîte manuelle ou ASG automatisée.",
+   alertKm:90, alertText:"90 000 km : embrayage ASG, bobines d'allumage.",
+   repairCosts:["Embrayage ASG : 700–1 000 €","Bobines : 80–150 € l'unité"],
+   achat:[30,60], revente:110, watch:"Embrayage ASG", prixAchat:[5500,8000], prixRevente:[8500,11000]},
+
+  {id:52, cat:"tourisme", seg:"citadine", name:"Skoda Citigo / Seat Mii", era:"2016–2021", score:6,
+   tech:"Base identique à la VW up!, essence atmosphérique ou turbo TSI.",
+   alertKm:90, alertText:"90 000 km : embrayage ASG.",
+   repairCosts:["Embrayage ASG : 700–1 000 €"],
+   achat:[30,60], revente:110, watch:"Embrayage ASG", prixAchat:[5000,7500], prixRevente:[8000,10500]},
+
+  {id:53, cat:"tourisme", seg:"citadine", name:"Toyota Aygo X", era:"2022–2024", score:8,
+   tech:"Essence atmosphérique 1.0 VVT-i, boîte manuelle ou CVT.",
+   alertKm:100, alertText:"100 000 km : rien de majeur signalé, mécanique Toyota éprouvée.",
+   repairCosts:["Entretien courant : faible"],
+   achat:[20,50], revente:130, watch:"Aucune vigilance majeure", prixAchat:[9000,12500], prixRevente:[13000,16000]},
+
+  {id:54, cat:"tourisme", seg:"citadine", name:"MG3", era:"2019–2024", score:6,
+   tech:"Essence atmosphérique 1.5, boîte manuelle, garantie constructeur longue durée.",
+   alertKm:80, alertText:"80 000 km : peu de retours sur gros kilométrage en France, marque récente sur le marché.",
+   repairCosts:["Entretien courant : correct, réseau après-vente encore limité"],
+   achat:[20,50], revente:100, watch:"Réseau après-vente limité, recul insuffisant", prixAchat:[4500,7000], prixRevente:[6500,9000]},
+
+  {id:55, cat:"tourisme", seg:"citadine", name:"Smart ForTwo / ForFour", era:"2015–2022", score:5,
+   tech:"Essence 3 cylindres turbo ou atmosphérique, boîte automatisée double embrayage.",
+   alertKm:70, alertText:"70 000 km : boîte automatisée saccadée, capteurs électroniques.",
+   repairCosts:["Boîte automatisée : 800–1 300 €","Capteurs/électronique : 150–350 €"],
+   achat:[20,50], revente:90, watch:"Boîte automatisée, électronique", prixAchat:[4000,6500], prixRevente:[5500,8000]},
+
+  {id:56, cat:"tourisme", seg:"compacte", name:"Skoda Scala", era:"2019–2024", score:6,
+   tech:"Bloc VW Group, essence TSI, boîte manuelle ou DSG.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution TSI. 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution : 800–1 400 €","Mécatronique DSG : 600–1 200 €"],
+   achat:[40,80], revente:140, watch:"Chaîne de distribution, DSG", prixAchat:[7000,10000], prixRevente:[10500,13500]},
+
+  {id:57, cat:"tourisme", seg:"compacte", name:"Mini Cooper / Clubman", era:"2018–2024", score:5,
+   tech:"Bloc BMW essence turbo 3/4 cylindres, boîte manuelle ou automatique.",
+   alertKm:90, alertText:"90 000 km : distribution par chaîne (tension), turbo, capteurs électroniques nombreux.",
+   repairCosts:["Chaîne de distribution : 900–1 500 €","Turbo : 800–1 300 €"],
+   achat:[30,70], revente:100, watch:"Chaîne de distribution, électronique", prixAchat:[8000,12000], prixRevente:[10000,14000]},
+
+  {id:58, cat:"tourisme", seg:"compacte", name:"Alfa Romeo Giulietta", era:"2016–2020", score:4,
+   tech:"Essence turbo ou diesel Multijet, boîte manuelle ou TCT double embrayage.",
+   alertKm:80, alertText:"80 000 km : boîte TCT, électronique embarquée fragile.",
+   repairCosts:["Boîte TCT : 1 200–1 900 €","Diagnostic électronique : 300–600 €"],
+   achat:[20,50], revente:70, watch:"Boîte TCT, électronique — vigilance élevée", prixAchat:[5000,8000], prixRevente:[6000,9500],
+   risk:"Marge faible et volatile : contrôler la boîte TCT et l'historique électronique avant achat."},
+
+  {id:59, cat:"tourisme", seg:"compacte", name:"Citroën C4 (nouvelle génération)", era:"2021–2024", score:5,
+   tech:"Essence PureTech ou diesel BlueHDi, boîte manuelle ou EAT8.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech (essence).",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €"],
+   achat:[30,60], revente:110, watch:"Chaîne de distribution PureTech", prixAchat:[8000,11500], prixRevente:[10500,14000]},
+
+  {id:60, cat:"tourisme", seg:"compacte", name:"Renault Mégane (thermique, IV)", era:"2016–2022", score:6,
+   tech:"Essence TCe turbo ou diesel Blue dCi, boîte manuelle ou EDC.",
+   alertKm:100, alertText:"100 000 km : turbo TCe, embrayage EDC.",
+   repairCosts:["Turbo TCe : 600–1 000 €","Embrayage EDC : 800–1 300 €"],
+   achat:[30,70], revente:130, watch:"Turbo, embrayage EDC", prixAchat:[6000,9000], prixRevente:[9000,12000]},
+
+  {id:61, cat:"tourisme", seg:"compacte", name:"Cupra Leon", era:"2020–2024", score:6,
+   tech:"Bloc VW Group essence TSI performance, boîte manuelle ou DSG.",
+   alertKm:90, alertText:"90 000 km : chaîne de distribution, mécatronique DSG sous forte sollicitation sportive.",
+   repairCosts:["Chaîne de distribution : 900–1 600 €","Mécatronique DSG : 800–1 400 €"],
+   achat:[30,60], revente:110, watch:"Chaîne de distribution, DSG", prixAchat:[13000,18000], prixRevente:[16000,21000]},
+
+  {id:62, cat:"tourisme", seg:"compacte", name:"Toyota Auris (pré-hybride majoritaire)", era:"2013–2018", score:8,
+   tech:"Essence atmosphérique, diesel D-4D ou hybride 1.8, boîte manuelle ou e-CVT.",
+   alertKm:150, alertText:"150 000 km : rien de majeur signalé, robustesse Toyota classique.",
+   repairCosts:["Entretien courant : faible"],
+   achat:[50,90], revente:170, watch:"Aucune vigilance majeure", prixAchat:[5000,8000], prixRevente:[8500,11500]},
+
+  {id:63, cat:"tourisme", seg:"citadine", name:"Honda Jazz", era:"2015–2024", score:8,
+   tech:"Essence atmosphérique 1.3/1.5 ou hybride e:HEV, boîte manuelle ou CVT.",
+   alertKm:140, alertText:"140 000 km : rien de majeur signalé, moteurs atmosphériques très endurants.",
+   repairCosts:["Entretien courant : faible"],
+   achat:[40,80], revente:160, watch:"Aucune vigilance majeure", prixAchat:[7000,10500], prixRevente:[11000,14000]},
+
+  {id:64, cat:"tourisme", seg:"citadine", name:"Mazda2", era:"2015–2023", score:7,
+   tech:"Essence Skyactiv-G atmosphérique, boîte manuelle ou automatique.",
+   alertKm:120, alertText:"120 000 km : embrayage, sinon mécanique simple et fiable.",
+   repairCosts:["Embrayage : 450–750 €"],
+   achat:[30,70], revente:130, watch:"Aucune vigilance majeure", prixAchat:[5500,8500], prixRevente:[8500,11000]},
+
+  {id:65, cat:"tourisme", seg:"berline", name:"Peugeot 508", era:"2019–2024", score:5,
+   tech:"Essence PureTech ou diesel BlueHDi, boîte manuelle ou EAT8.",
+   alertKm:90, alertText:"90 000 km : chaîne de distribution PureTech (essence). 140 000 km : FAP diesel.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €","FAP : 900–1 500 €"],
+   achat:[40,80], revente:120, watch:"Chaîne de distribution PureTech", prixAchat:[9000,13000], prixRevente:[12000,16000]},
+
+  {id:66, cat:"tourisme", seg:"berline", name:"Citroën C5 X", era:"2022–2024", score:5,
+   tech:"Essence hybride rechargeable ou diesel BlueHDi, boîte EAT8.",
+   alertKm:90, alertText:"90 000 km : batterie hybride rechargeable à contrôler sur versions PHEV.",
+   repairCosts:["Diagnostic batterie PHEV : 300–600 €","FAP (diesel) : 900–1 500 €"],
+   achat:[30,60], revente:100, watch:"Batterie PHEV (versions hybrides)", prixAchat:[14000,19000], prixRevente:[16000,21000]},
+
+  {id:67, cat:"tourisme", seg:"berline", name:"Renault Talisman", era:"2016–2022", score:5,
+   tech:"Essence TCe ou diesel Blue dCi, boîte manuelle ou EDC.",
+   alertKm:100, alertText:"100 000 km : turbo, injecteurs, boîte EDC.",
+   repairCosts:["Turbo : 700–1 100 €","Boîte EDC : 900–1 500 €"],
+   achat:[30,70], revente:90, watch:"Turbo, boîte EDC", prixAchat:[7000,10500], prixRevente:[8500,12000]},
+
+  {id:68, cat:"tourisme", seg:"berline", name:"Opel Insignia", era:"2017–2022", score:5,
+   tech:"Essence turbo ou diesel, boîte manuelle ou automatique.",
+   alertKm:100, alertText:"100 000 km : turbo, capteurs électroniques.",
+   repairCosts:["Turbo : 700–1 200 €","Capteurs : 150–350 €"],
+   achat:[30,70], revente:90, watch:"Turbo, électronique", prixAchat:[6500,10000], prixRevente:[8000,11500]},
+
+  {id:69, cat:"tourisme", seg:"berline", name:"Skoda Superb", era:"2016–2024", score:7,
+   tech:"Bloc VW Group, essence TSI ou diesel TDI, boîte manuelle ou DSG.",
+   alertKm:110, alertText:"110 000 km : chaîne de distribution. 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution : 900–1 600 €","Mécatronique DSG : 700–1 300 €"],
+   achat:[50,90], revente:150, watch:"Chaîne de distribution, DSG", prixAchat:[10000,14500], prixRevente:[14500,18500]},
+
+  {id:70, cat:"tourisme", seg:"berline", name:"Volkswagen Passat", era:"2015–2023", score:6,
+   tech:"Essence TSI ou diesel TDI, boîte manuelle ou DSG.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution TSI. 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution : 900–1 600 €","Mécatronique DSG : 700–1 300 €"],
+   achat:[40,80], revente:130, watch:"Chaîne de distribution, DSG", prixAchat:[8500,12500], prixRevente:[12000,15500]},
+
+  {id:71, cat:"tourisme", seg:"premium", name:"Audi A4 / A6", era:"2016–2024", score:6,
+   tech:"Bloc VW Group premium, essence TFSI ou diesel TDI, boîte manuelle ou S tronic/Tiptronic.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution. 150 000 km : mécatronique boîte automatique.",
+   repairCosts:["Mécatronique : 900–1 600 €","Chaîne de distribution : 900–1 700 €"],
+   achat:[50,90], revente:130, watch:"Chaîne de distribution, boîte automatique", prixAchat:[13000,19000], prixRevente:[17000,22500]},
+
+  {id:72, cat:"tourisme", seg:"premium", name:"BMW Série 5", era:"2017–2024", score:6,
+   tech:"Essence turbo ou diesel turbo, boîte automatique ZF, propulsion ou xDrive.",
+   alertKm:100, alertText:"100 000 km : injecteurs diesel, vanne EGR. 140 000 km : suspension pilotée.",
+   repairCosts:["Injecteurs diesel : 350–650 € l'unité","Suspension pilotée : 600–1 000 € / coin"],
+   achat:[50,90], revente:120, watch:"Injecteurs, suspension pilotée", prixAchat:[15000,21000], prixRevente:[19000,25000]},
+
+  {id:73, cat:"tourisme", seg:"premium", name:"Mercedes Classe C", era:"2018–2024", score:6,
+   tech:"Essence turbo ou diesel, boîte automatique 9G-Tronic.",
+   alertKm:100, alertText:"100 000 km : injecteurs, turbo, capteurs de suspension.",
+   repairCosts:["Injecteurs : 350–650 € l'unité","Turbo : 800–1 400 €"],
+   achat:[40,80], revente:110, watch:"Injecteurs, turbo", prixAchat:[12000,17000], prixRevente:[15000,20000]},
+
+  {id:74, cat:"tourisme", seg:"premium", name:"Mercedes Classe E", era:"2017–2024", score:6,
+   tech:"Essence turbo ou diesel, boîte automatique 9G-Tronic, suspension pneumatique en option.",
+   alertKm:100, alertText:"100 000 km : suspension pneumatique, injecteurs.",
+   repairCosts:["Suspension pneumatique : 800–1 400 € / coin","Injecteurs : 350–650 € l'unité"],
+   achat:[50,90], revente:120, watch:"Suspension pneumatique, injecteurs", prixAchat:[16000,22000], prixRevente:[20000,26000]},
+
+  {id:75, cat:"tourisme", seg:"berline", name:"Volvo S60 / S90", era:"2017–2024", score:6,
+   tech:"Essence T-turbo ou diesel D4, boîte automatique 8 rapports.",
+   alertKm:100, alertText:"100 000 km : turbo, capteurs de suspension.",
+   repairCosts:["Turbo : 900–1 500 €","Capteurs : 200–400 € l'unité"],
+   achat:[40,80], revente:110, watch:"Turbo, capteurs", prixAchat:[13000,18000], prixRevente:[16000,21000]},
+
+  {id:76, cat:"tourisme", seg:"berline", name:"Toyota Camry (import)", era:"2019–2024", score:8,
+   tech:"Hybride essence 2.5L, e-CVT, mécanique partagée avec RAV4/Corolla.",
+   alertKm:160, alertText:"160 000 km : rien de majeur signalé.",
+   repairCosts:["Entretien courant : faible"],
+   achat:[50,90], revente:180, watch:"Aucune vigilance majeure", prixAchat:[13000,18000], prixRevente:[18000,22000]},
+
+  {id:77, cat:"tourisme", seg:"suv", name:"Peugeot 3008", era:"2019–2024", score:5,
+   tech:"Essence PureTech ou diesel BlueHDi, ou hybride rechargeable, boîte EAT8.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech (essence).",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €","Batterie PHEV (diagnostic) : 300–600 €"],
+   achat:[30,70], revente:110, watch:"Chaîne de distribution PureTech", prixAchat:[9000,13000], prixRevente:[12000,16000]},
+
+  {id:78, cat:"tourisme", seg:"suv", name:"Peugeot 5008", era:"2019–2024", score:5,
+   tech:"Même base que 3008, 7 places, essence PureTech ou diesel BlueHDi.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €"],
+   achat:[30,70], revente:110, watch:"Chaîne de distribution PureTech", prixAchat:[10000,14000], prixRevente:[13000,17000]},
+
+  {id:79, cat:"tourisme", seg:"suv", name:"Citroën C4 Cactus", era:"2018–2023", score:5,
+   tech:"Essence PureTech, boîte manuelle ou EAT6.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €"],
+   achat:[30,60], revente:100, watch:"Chaîne de distribution PureTech", prixAchat:[6500,9500], prixRevente:[8500,11500]},
+
+  {id:80, cat:"tourisme", seg:"suv", name:"Citroën C3 Aircross", era:"2019–2024", score:5,
+   tech:"Essence PureTech, boîte manuelle ou EAT6.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €"],
+   achat:[30,60], revente:100, watch:"Chaîne de distribution PureTech", prixAchat:[7000,10000], prixRevente:[9000,12000]},
+
+  {id:81, cat:"tourisme", seg:"suv", name:"Renault Austral", era:"2022–2024", score:6,
+   tech:"Essence TCe hybride léger ou E-Tech hybride, boîte EDC ou multi-mode.",
+   alertKm:70, alertText:"70 000 km : peu de recul long terme, embrayage EDC à surveiller.",
+   repairCosts:["Embrayage EDC : 800–1 300 €"],
+   achat:[20,50], revente:90, watch:"Recul limité, embrayage EDC", prixAchat:[13000,17000], prixRevente:[15000,19000]},
+
+  {id:82, cat:"tourisme", seg:"suv", name:"Renault Espace (SUV)", era:"2020–2024", score:5,
+   tech:"Diesel Blue dCi ou hybride E-Tech, boîte EDC ou multi-mode.",
+   alertKm:90, alertText:"90 000 km : injecteurs, boîte EDC.",
+   repairCosts:["Injecteurs : 300–550 € l'unité","Boîte EDC : 900–1 500 €"],
+   achat:[30,70], revente:100, watch:"Injecteurs, boîte EDC", prixAchat:[11000,15000], prixRevente:[13000,17000]},
+
+  {id:83, cat:"tourisme", seg:"suv", name:"Renault Kadjar", era:"2016–2022", score:5,
+   tech:"Essence TCe ou diesel Blue dCi, boîte manuelle ou EDC.",
+   alertKm:90, alertText:"90 000 km : turbo, embrayage EDC.",
+   repairCosts:["Turbo : 700–1 100 €","Embrayage EDC : 800–1 300 €"],
+   achat:[30,70], revente:100, watch:"Turbo, embrayage EDC", prixAchat:[7000,10500], prixRevente:[9500,13000]},
+
+  {id:84, cat:"tourisme", seg:"suv", name:"Dacia Jogger", era:"2022–2024", score:7,
+   tech:"Essence TCe turbo ou GPL bi-carburation, boîte manuelle ou CVT.",
+   alertKm:90, alertText:"90 000 km : turbo TCe, sinon mécanique Renault-Nissan éprouvée.",
+   repairCosts:["Turbo : 500–900 €"],
+   achat:[20,50], revente:110, watch:"Turbo", prixAchat:[8000,11000], prixRevente:[10500,13500]},
+
+  {id:85, cat:"tourisme", seg:"suv", name:"Dacia Bigster", era:"2024", score:7,
+   tech:"Essence TCe hybride léger ou hybride HEV, boîte manuelle ou CVT — modèle récent.",
+   alertKm:80, alertText:"80 000 km : peu de recul, base mécanique Renault-Nissan habituellement fiable.",
+   repairCosts:["Turbo : 500–900 €"],
+   achat:[20,40], revente:90, watch:"Recul limité (modèle récent)", prixAchat:[13000,17000], prixRevente:[15000,19000]},
+
+  {id:86, cat:"tourisme", seg:"suv", name:"Opel Grandland", era:"2018–2024", score:5,
+   tech:"Essence PureTech ou diesel BlueHDi, base Stellantis.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €"],
+   achat:[30,60], revente:100, watch:"Chaîne de distribution PureTech", prixAchat:[8500,12000], prixRevente:[11000,14500]},
+
+  {id:87, cat:"tourisme", seg:"suv", name:"Opel Mokka", era:"2021–2024", score:5,
+   tech:"Essence PureTech, base Stellantis, boîte manuelle ou EAT8.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €"],
+   achat:[20,50], revente:90, watch:"Chaîne de distribution PureTech", prixAchat:[9000,12500], prixRevente:[11500,15000]},
+
+  {id:88, cat:"tourisme", seg:"suv", name:"Skoda Kodiaq", era:"2018–2024", score:7,
+   tech:"Bloc VW Group, essence TSI ou diesel TDI, boîte manuelle ou DSG, 7 places en option.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution. 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution : 900–1 600 €","Mécatronique DSG : 700–1 300 €"],
+   achat:[40,80], revente:140, watch:"Chaîne de distribution, DSG", prixAchat:[11000,16000], prixRevente:[15000,19500]},
+
+  {id:89, cat:"tourisme", seg:"suv", name:"Skoda Karoq", era:"2018–2024", score:7,
+   tech:"Bloc VW Group, essence TSI ou diesel TDI, boîte manuelle ou DSG.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution. 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution : 900–1 600 €","Mécatronique DSG : 700–1 300 €"],
+   achat:[40,80], revente:130, watch:"Chaîne de distribution, DSG", prixAchat:[9500,13500], prixRevente:[13000,16800]},
+
+  {id:90, cat:"tourisme", seg:"suv", name:"Volkswagen Touareg", era:"2018–2024", score:6,
+   tech:"Essence TSI ou diesel V6 TDI, boîte automatique Tiptronic, 4Motion de série.",
+   alertKm:100, alertText:"100 000 km : suspension pneumatique, turbo.",
+   repairCosts:["Suspension pneumatique : 900–1 500 € / coin","Turbo : 900–1 500 €"],
+   achat:[50,90], revente:110, watch:"Suspension pneumatique, turbo", prixAchat:[18000,25000], prixRevente:[22000,28000]},
+
+  {id:91, cat:"tourisme", seg:"suv", name:"Volkswagen T-Cross", era:"2019–2024", score:6,
+   tech:"Essence TSI, boîte manuelle ou DSG.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution TSI. 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution : 800–1 400 €","Mécatronique DSG : 600–1 200 €"],
+   achat:[30,70], revente:110, watch:"Chaîne de distribution, DSG", prixAchat:[8000,11500], prixRevente:[10500,14000]},
+
+  {id:92, cat:"tourisme", seg:"premium", name:"Audi Q5", era:"2017–2024", score:6,
+   tech:"Bloc VW Group premium, essence TFSI ou diesel TDI, boîte S tronic ou Tiptronic, quattro de série.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution, mécatronique boîte automatique.",
+   repairCosts:["Mécatronique : 900–1 600 €","Chaîne de distribution : 900–1 700 €"],
+   achat:[50,90], revente:120, watch:"Chaîne de distribution, boîte automatique", prixAchat:[16000,22000], prixRevente:[19000,25000]},
+
+  {id:93, cat:"tourisme", seg:"premium", name:"Audi Q7", era:"2016–2024", score:6,
+   tech:"Essence TFSI ou diesel TDI V6, boîte Tiptronic, suspension pneumatique.",
+   alertKm:100, alertText:"100 000 km : suspension pneumatique, capteurs.",
+   repairCosts:["Suspension pneumatique : 900–1 600 € / coin"],
+   achat:[50,90], revente:100, watch:"Suspension pneumatique", prixAchat:[20000,28000], prixRevente:[23000,30000]},
+
+  {id:94, cat:"tourisme", seg:"premium", name:"BMW X3", era:"2018–2024", score:6,
+   tech:"Essence turbo ou diesel turbo, boîte automatique ZF, xDrive de série sur la majorité des versions.",
+   alertKm:100, alertText:"100 000 km : injecteurs diesel, turbo.",
+   repairCosts:["Injecteurs diesel : 350–650 € l'unité","Turbo : 900–1 600 €"],
+   achat:[50,90], revente:120, watch:"Injecteurs, turbo", prixAchat:[16000,22000], prixRevente:[19000,25000]},
+
+  {id:95, cat:"tourisme", seg:"premium", name:"BMW X5", era:"2018–2024", score:6,
+   tech:"Essence turbo ou diesel turbo, boîte automatique ZF, xDrive de série, suspension pneumatique en option.",
+   alertKm:100, alertText:"100 000 km : suspension pneumatique, injecteurs.",
+   repairCosts:["Suspension pneumatique : 900–1 500 € / coin","Injecteurs : 350–650 € l'unité"],
+   achat:[50,90], revente:110, watch:"Suspension pneumatique, injecteurs", prixAchat:[24000,32000], prixRevente:[27000,35000]},
+
+  {id:96, cat:"tourisme", seg:"premium", name:"Mercedes GLC", era:"2018–2024", score:6,
+   tech:"Essence turbo ou diesel, boîte automatique 9G-Tronic, 4Matic en option.",
+   alertKm:100, alertText:"100 000 km : injecteurs, turbo.",
+   repairCosts:["Injecteurs : 350–650 € l'unité","Turbo : 900–1 500 €"],
+   achat:[50,90], revente:120, watch:"Injecteurs, turbo", prixAchat:[17000,23000], prixRevente:[20000,26000]},
+
+  {id:97, cat:"tourisme", seg:"premium", name:"Mercedes GLE", era:"2019–2024", score:6,
+   tech:"Essence turbo ou diesel, boîte automatique 9G-Tronic, suspension pneumatique disponible.",
+   alertKm:100, alertText:"100 000 km : suspension pneumatique, injecteurs.",
+   repairCosts:["Suspension pneumatique : 900–1 600 € / coin"],
+   achat:[50,90], revente:100, watch:"Suspension pneumatique", prixAchat:[25000,33000], prixRevente:[28000,36000]},
+
+  {id:98, cat:"tourisme", seg:"suv", name:"Volvo XC90", era:"2016–2024", score:6,
+   tech:"Essence T-turbo ou diesel D5, boîte automatique 8 rapports, transmission intégrale en option.",
+   alertKm:100, alertText:"100 000 km : turbo, capteurs de suspension.",
+   repairCosts:["Turbo : 1 000–1 600 €"],
+   achat:[50,90], revente:110, watch:"Turbo", prixAchat:[19000,26000], prixRevente:[22000,29000]},
+
+  {id:99, cat:"tourisme", seg:"premium", name:"Land Rover Discovery", era:"2017–2024", score:3,
+   tech:"Moteur Ingenium essence ou diesel, distribution par chaîne longue, boîte automatique.",
+   alertKm:70, alertText:"70 000 km : distension de chaîne Ingenium, panne majeure documentée.",
+   repairCosts:["Remplacement chaîne Ingenium : 9 000–15 000 €"],
+   achat:[30,70], revente:70, watch:"Chaîne de distribution Ingenium — vigilance très élevée", prixAchat:[18000,25000], prixRevente:[19000,26000],
+   risk:"Comme sur l'Evoque/Velar, une panne de chaîne Ingenium annule la marge totale. Expertise moteur indispensable avant achat."},
+
+  {id:100, cat:"tourisme", seg:"premium", name:"Land Rover Defender", era:"2020–2024", score:4,
+   tech:"Moteur Ingenium essence ou diesel, plateforme monocoque, électronique dense.",
+   alertKm:70, alertText:"70 000 km : électronique embarquée, suspension pneumatique.",
+   repairCosts:["Suspension pneumatique : 900–1 600 € / coin","Diagnostic électronique : 300–700 €"],
+   achat:[20,50], revente:60, watch:"Électronique, suspension pneumatique — vigilance élevée", prixAchat:[28000,38000], prixRevente:[28000,38000],
+   risk:"Modèle récent à forte décote potentielle si panne électronique : marge à sécuriser par une garantie mécanique à la revente."},
+
+  {id:101, cat:"tourisme", seg:"premium", name:"Jaguar E-Pace", era:"2018–2023", score:4,
+   tech:"Moteur Ingenium essence ou diesel, boîte automatique ZF.",
+   alertKm:70, alertText:"70 000 km : chaîne de distribution Ingenium, électronique.",
+   repairCosts:["Chaîne de distribution Ingenium : 3 000–6 000 €"],
+   achat:[20,50], revente:60, watch:"Chaîne de distribution Ingenium — vigilance élevée", prixAchat:[10000,14000], prixRevente:[10500,15000],
+   risk:"Marge fine : contrôler l'historique moteur avant achat."},
+
+  {id:102, cat:"tourisme", seg:"suv", name:"Mitsubishi Outlander", era:"2018–2024", score:6,
+   tech:"Essence atmosphérique ou hybride rechargeable PHEV, boîte CVT.",
+   alertKm:110, alertText:"110 000 km : boîte CVT à surveiller. Diagnostic batterie sur versions PHEV.",
+   repairCosts:["Vidange CVT préventive : 200–300 €","Diagnostic batterie PHEV : 300–600 €"],
+   achat:[40,80], revente:130, watch:"Boîte CVT", prixAchat:[9000,13000], prixRevente:[12000,16000]},
+
+  {id:103, cat:"tourisme", seg:"suv", name:"Mitsubishi ASX", era:"2016–2022", score:6,
+   tech:"Essence atmosphérique ou diesel, plateforme partagée Renault-Nissan, boîte manuelle ou CVT.",
+   alertKm:100, alertText:"100 000 km : boîte CVT, injecteurs diesel.",
+   repairCosts:["Vidange CVT préventive : 200–300 €","Injecteurs : 250–450 € l'unité"],
+   achat:[30,70], revente:100, watch:"Boîte CVT", prixAchat:[6500,9500], prixRevente:[8500,11500]},
+
+  {id:104, cat:"tourisme", seg:"suv", name:"Suzuki Across", era:"2020–2024", score:7,
+   tech:"Hybride rechargeable partagé avec Toyota RAV4 PHEV, e-CVT.",
+   alertKm:120, alertText:"120 000 km : diagnostic batterie hybride, sinon base Toyota très fiable.",
+   repairCosts:["Diagnostic batterie hybride : 300–600 €"],
+   achat:[40,80], revente:150, watch:"Aucune vigilance majeure", prixAchat:[16000,21000], prixRevente:[19000,24000]},
+
+  {id:105, cat:"tourisme", seg:"suv", name:"Suzuki S-Cross", era:"2017–2024", score:7,
+   tech:"Essence Boosterjet turbo ou hybride léger, boîte manuelle ou automatique, 4x4 AllGrip en option.",
+   alertKm:110, alertText:"110 000 km : embrayage, courroie accessoires.",
+   repairCosts:["Embrayage : 500–800 €"],
+   achat:[30,70], revente:130, watch:"Aucune vigilance majeure", prixAchat:[8000,11500], prixRevente:[10500,13800]},
+
+  {id:106, cat:"tourisme", seg:"suv", name:"Jeep Renegade", era:"2018–2023", score:4,
+   tech:"Essence turbo ou diesel Multijet partagé Fiat, boîte manuelle ou DCT.",
+   alertKm:80, alertText:"80 000 km : boîte DCT, électronique embarquée fragile.",
+   repairCosts:["Boîte DCT : 1 200–1 900 €","Diagnostic électronique : 300–600 €"],
+   achat:[20,50], revente:70, watch:"Boîte DCT, électronique — vigilance élevée", prixAchat:[7000,10500], prixRevente:[8000,11500],
+   risk:"Faire tester la boîte DCT et l'électronique embarquée avant achat : pannes répétées documentées."},
+
+  {id:107, cat:"tourisme", seg:"suv", name:"Jeep Compass", era:"2018–2024", score:4,
+   tech:"Essence turbo ou diesel Multijet, boîte manuelle ou DCT.",
+   alertKm:80, alertText:"80 000 km : boîte DCT, électronique.",
+   repairCosts:["Boîte DCT : 1 200–1 900 €"],
+   achat:[20,50], revente:70, watch:"Boîte DCT — vigilance élevée", prixAchat:[9000,13000], prixRevente:[10000,14500]},
+
+  {id:108, cat:"tourisme", seg:"suv", name:"Toyota Highlander", era:"2020–2024", score:8,
+   tech:"Hybride essence 2.5L, transmission intégrale E-Four, e-CVT.",
+   alertKm:150, alertText:"150 000 km : rien de majeur signalé.",
+   repairCosts:["Entretien courant : faible"],
+   achat:[50,90], revente:170, watch:"Aucune vigilance majeure", prixAchat:[22000,28000], prixRevente:[26000,32000]},
+
+  {id:109, cat:"tourisme", seg:"suv", name:"Toyota Land Cruiser", era:"2017–2024", score:8,
+   tech:"Diesel 2.8L D-4D, boîte manuelle ou automatique, transmission intégrale permanente, châssis séparé.",
+   alertKm:200, alertText:"200 000 km : injecteurs, suspension. Robustesse tout-terrain légendaire.",
+   repairCosts:["Injecteurs : 350–600 € l'unité"],
+   achat:[70,120], revente:220, watch:"Aucune vigilance majeure", prixAchat:[28000,38000], prixRevente:[34000,42000]},
+
+  {id:110, cat:"tourisme", seg:"suv", name:"Honda HR-V", era:"2016–2024", score:7,
+   tech:"Essence atmosphérique ou hybride e:HEV, boîte manuelle ou CVT/e-CVT.",
+   alertKm:130, alertText:"130 000 km : rien de majeur signalé.",
+   repairCosts:["Entretien courant : faible"],
+   achat:[40,80], revente:150, watch:"Aucune vigilance majeure", prixAchat:[9500,13500], prixRevente:[13000,16500]},
+
+  {id:111, cat:"tourisme", seg:"suv", name:"Mazda CX-3", era:"2016–2021", score:7,
+   tech:"Essence Skyactiv-G, boîte manuelle ou automatique.",
+   alertKm:120, alertText:"120 000 km : embrayage, distribution par chaîne.",
+   repairCosts:["Embrayage : 500–800 €"],
+   achat:[30,70], revente:120, watch:"Aucune vigilance majeure", prixAchat:[7000,10000], prixRevente:[9500,12500]},
+
+  {id:112, cat:"tourisme", seg:"suv", name:"Mazda CX-30", era:"2019–2024", score:7,
+   tech:"Essence Skyactiv-G ou diesel Skyactiv-D, boîte manuelle ou automatique.",
+   alertKm:130, alertText:"130 000 km : vanne EGR (diesel), embrayage (manuelle).",
+   repairCosts:["Vanne EGR : 350–600 €","Embrayage : 700–1 000 €"],
+   achat:[40,80], revente:140, watch:"Embrayage, EGR (diesel)", prixAchat:[9500,13500], prixRevente:[13000,16800]},
+
+  {id:113, cat:"tourisme", seg:"suv", name:"Mazda CX-60", era:"2022–2024", score:7,
+   tech:"Essence hybride léger ou diesel Skyactiv-D en ligne, propulsion, boîte automatique 8 rapports.",
+   alertKm:100, alertText:"100 000 km : peu de recul, base mécanique Mazda habituellement robuste.",
+   repairCosts:["Entretien courant : correct"],
+   achat:[30,60], revente:120, watch:"Recul limité (modèle récent)", prixAchat:[19000,25000], prixRevente:[22000,28000]},
+
+  {id:114, cat:"tourisme", seg:"suv", name:"Nissan Juke", era:"2019–2024", score:6,
+   tech:"Essence DIG-T turbo, boîte manuelle ou DCT.",
+   alertKm:100, alertText:"100 000 km : turbo, boîte DCT sur versions concernées.",
+   repairCosts:["Turbo : 700–1 100 €","Boîte DCT : 900–1 400 €"],
+   achat:[30,70], revente:110, watch:"Turbo, boîte DCT", prixAchat:[8000,11500], prixRevente:[10500,14000]},
+
+  {id:115, cat:"tourisme", seg:"suv", name:"Nissan X-Trail", era:"2018–2024", score:6,
+   tech:"Essence ou e-Power hybride série, boîte CVT Xtronic ou automatique dédiée e-Power.",
+   alertKm:110, alertText:"110 000 km : boîte CVT Xtronic à surveiller.",
+   repairCosts:["Vidange CVT préventive : 200–300 €","Réparation CVT négligée : 2 500–3 500 €"],
+   achat:[40,80], revente:130, watch:"Boîte CVT Xtronic", prixAchat:[11000,15500], prixRevente:[14500,18500]},
+
+  {id:116, cat:"tourisme", seg:"suv", name:"Hyundai Santa Fe", era:"2018–2024", score:7,
+   tech:"Essence GDi ou diesel CRDi, boîte manuelle ou automatique, transmission intégrale en option.",
+   alertKm:120, alertText:"120 000 km : embrayage, turbo diesel.",
+   repairCosts:["Embrayage : 700–1 000 €","Turbo diesel : 800–1 300 €"],
+   achat:[40,80], revente:140, watch:"Embrayage, turbo diesel", prixAchat:[13000,18000], prixRevente:[16000,20500]},
+
+  {id:117, cat:"tourisme", seg:"suv", name:"Hyundai Kona Electric", era:"2019–2024", score:7,
+   tech:"100 % électrique, moteur synchrone, batterie 39 à 65 kWh.",
+   alertKm:100, alertText:"100 000 km : dégradation batterie modérée, contrôler l'état de charge maximal avant achat.",
+   repairCosts:["Diagnostic batterie : 150–300 €"],
+   achat:[30,60], revente:130, watch:"État de la batterie", prixAchat:[12000,17000], prixRevente:[15000,19500]},
+
+  {id:118, cat:"tourisme", seg:"suv", name:"Kia Niro (hybride/EV)", era:"2018–2024", score:7,
+   tech:"Hybride, hybride rechargeable ou 100 % électrique, boîte automatique DCT ou réducteur fixe.",
+   alertKm:120, alertText:"120 000 km : embrayage DCT (hybride). Électrique : contrôle batterie.",
+   repairCosts:["Embrayage DCT : 900–1 400 €","Diagnostic batterie (EV) : 150–300 €"],
+   achat:[30,70], revente:140, watch:"Embrayage DCT (hybride) / batterie (EV)", prixAchat:[11000,16000], prixRevente:[14500,19000]},
+
+  {id:119, cat:"tourisme", seg:"suv", name:"Kia Sorento", era:"2018–2024", score:7,
+   tech:"Diesel CRDi ou hybride rechargeable, boîte automatique 8 rapports.",
+   alertKm:120, alertText:"120 000 km : turbo diesel, diagnostic batterie PHEV.",
+   repairCosts:["Turbo diesel : 800–1 300 €"],
+   achat:[40,80], revente:140, watch:"Turbo diesel", prixAchat:[16000,22000], prixRevente:[19000,25000]},
+
+  {id:120, cat:"tourisme", seg:"suv", name:"Kia EV6", era:"2021–2024", score:7,
+   tech:"100 % électrique, plateforme dédiée E-GMP, batterie 58 à 77 kWh.",
+   alertKm:100, alertText:"100 000 km : dégradation batterie modérée, contrôle du système de recharge rapide.",
+   repairCosts:["Diagnostic batterie/chargeur : 200–400 €"],
+   achat:[30,60], revente:150, watch:"État de la batterie", prixAchat:[20000,27000], prixRevente:[24000,31000]},
+
+  {id:121, cat:"tourisme", seg:"suv", name:"SsangYong Korando", era:"2019–2024", score:5,
+   tech:"Essence turbo ou diesel, boîte manuelle ou automatique, réseau après-vente restreint en France.",
+   alertKm:90, alertText:"90 000 km : turbo, disponibilité des pièces plus longue.",
+   repairCosts:["Turbo : 700–1 200 €","Délai pièces plus long : coût d'immobilisation à anticiper"],
+   achat:[20,50], revente:80, watch:"Réseau après-vente restreint", prixAchat:[8000,11500], prixRevente:[9500,13000]},
+
+  {id:122, cat:"tourisme", seg:"suv", name:"SsangYong Tivoli", era:"2018–2023", score:5,
+   tech:"Essence turbo ou diesel, boîte manuelle ou automatique.",
+   alertKm:90, alertText:"90 000 km : turbo, réseau après-vente restreint.",
+   repairCosts:["Turbo : 700–1 100 €"],
+   achat:[20,50], revente:70, watch:"Réseau après-vente restreint", prixAchat:[6500,9500], prixRevente:[7500,10500]},
+
+  {id:123, cat:"tourisme", seg:"suv", name:"MG ZS", era:"2020–2024", score:6,
+   tech:"Essence turbo ou 100 % électrique, boîte manuelle, automatique ou réducteur fixe (EV).",
+   alertKm:80, alertText:"80 000 km : peu de recul long terme, garantie constructeur longue rassurante.",
+   repairCosts:["Entretien courant : correct"],
+   achat:[20,50], revente:100, watch:"Réseau après-vente en développement", prixAchat:[7500,11000], prixRevente:[9500,13000]},
+
+  {id:124, cat:"tourisme", seg:"suv", name:"MG HS", era:"2021–2024", score:6,
+   tech:"Essence turbo ou hybride rechargeable, boîte automatique.",
+   alertKm:80, alertText:"80 000 km : peu de recul, diagnostic batterie sur versions PHEV.",
+   repairCosts:["Diagnostic batterie PHEV : 300–600 €"],
+   achat:[20,50], revente:90, watch:"Réseau après-vente en développement", prixAchat:[9000,13000], prixRevente:[11000,15000]},
+
+  {id:125, cat:"tourisme", seg:"compacte", name:"MG4", era:"2022–2024", score:6,
+   tech:"100 % électrique, plateforme dédiée MSP, batterie 51 à 77 kWh.",
+   alertKm:70, alertText:"70 000 km : peu de recul, contrôle de l'état de batterie recommandé.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[20,50], revente:100, watch:"Recul limité (modèle récent)", prixAchat:[12000,16500], prixRevente:[14500,18500]},
+
+  {id:126, cat:"tourisme", seg:"berline", name:"MG5", era:"2021–2024", score:6,
+   tech:"100 % électrique, break familial, batterie 50 à 61 kWh.",
+   alertKm:70, alertText:"70 000 km : peu de recul, contrôle batterie recommandé.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[20,50], revente:90, watch:"Recul limité (modèle récent)", prixAchat:[11000,15500], prixRevente:[13000,17000]},
+
+  {id:127, cat:"tourisme", seg:"suv", name:"BYD Atto 3", era:"2023–2024", score:6,
+   tech:"100 % électrique, batterie LFP Blade 60 kWh, réducteur fixe.",
+   alertKm:60, alertText:"60 000 km : marque très récente en France, peu de recul sur la durabilité réelle.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[10,40], revente:80, watch:"Marque récente, recul très limité", prixAchat:[14000,18500], prixRevente:[15500,20000]},
+
+  {id:128, cat:"tourisme", seg:"berline", name:"BYD Seal", era:"2023–2024", score:6,
+   tech:"100 % électrique, batterie LFP Blade, propulsion ou transmission intégrale.",
+   alertKm:60, alertText:"60 000 km : marque récente, peu de recul.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[10,40], revente:90, watch:"Marque récente, recul très limité", prixAchat:[18000,24000], prixRevente:[20000,26000]},
+
+  {id:129, cat:"tourisme", seg:"compacte", name:"BYD Dolphin", era:"2023–2024", score:6,
+   tech:"100 % électrique, batterie LFP Blade 44 à 60 kWh, citadine/compacte.",
+   alertKm:60, alertText:"60 000 km : marque récente, peu de recul.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[10,40], revente:70, watch:"Marque récente, recul très limité", prixAchat:[12000,16000], prixRevente:[13500,17500]},
+
+  {id:130, cat:"tourisme", seg:"compacte", name:"Renault Megane E-Tech", era:"2022–2024", score:6,
+   tech:"100 % électrique, plateforme CMF-EV, batterie 40 ou 60 kWh.",
+   alertKm:80, alertText:"80 000 km : dégradation batterie modérée, contrôle du chargeur embarqué.",
+   repairCosts:["Diagnostic batterie/chargeur : 200–400 €"],
+   achat:[20,50], revente:110, watch:"État de la batterie", prixAchat:[16000,21000], prixRevente:[18500,23000]},
+
+  {id:131, cat:"tourisme", seg:"citadine", name:"Peugeot e-208 / e-2008", era:"2020–2024", score:6,
+   tech:"100 % électrique, batterie 50 kWh, réducteur fixe.",
+   alertKm:80, alertText:"80 000 km : dégradation batterie modérée.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[20,50], revente:100, watch:"État de la batterie", prixAchat:[13000,17500], prixRevente:[15000,19500]},
+
+  {id:132, cat:"tourisme", seg:"compacte", name:"Citroën ë-C4", era:"2021–2024", score:6,
+   tech:"100 % électrique, base Stellantis partagée e-208/e-2008, batterie 50 kWh.",
+   alertKm:80, alertText:"80 000 km : dégradation batterie modérée.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[20,50], revente:90, watch:"État de la batterie", prixAchat:[12500,17000], prixRevente:[14000,18500]},
+
+  {id:133, cat:"tourisme", seg:"citadine", name:"Opel Corsa-e", era:"2020–2024", score:6,
+   tech:"100 % électrique, base Stellantis partagée e-208, batterie 50 kWh.",
+   alertKm:80, alertText:"80 000 km : dégradation batterie modérée.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[20,50], revente:90, watch:"État de la batterie", prixAchat:[11500,16000], prixRevente:[13500,17500]},
+
+  {id:134, cat:"tourisme", seg:"citadine", name:"Fiat 500e", era:"2021–2024", score:6,
+   tech:"100 % électrique, batterie 24 ou 42 kWh, citadine urbaine.",
+   alertKm:70, alertText:"70 000 km : dégradation batterie modérée, autonomie réduite en usage urbain intensif.",
+   repairCosts:["Diagnostic batterie : 200–350 €"],
+   achat:[20,50], revente:90, watch:"État de la batterie", prixAchat:[11000,15000], prixRevente:[12500,16500]},
+
+  {id:135, cat:"tourisme", seg:"compacte", name:"Volkswagen ID.3", era:"2020–2024", score:6,
+   tech:"100 % électrique, plateforme MEB, batterie 45 à 77 kWh, propulsion arrière.",
+   alertKm:90, alertText:"90 000 km : dégradation batterie modérée, logiciel embarqué à mettre à jour régulièrement.",
+   repairCosts:["Diagnostic batterie/logiciel : 200–450 €"],
+   achat:[20,50], revente:110, watch:"État de la batterie, logiciel embarqué", prixAchat:[14000,19000], prixRevente:[16500,21000]},
+
+  {id:136, cat:"tourisme", seg:"suv", name:"Volkswagen ID.4 / ID.5", era:"2021–2024", score:6,
+   tech:"100 % électrique, plateforme MEB, batterie 52 à 77 kWh, propulsion ou transmission intégrale.",
+   alertKm:90, alertText:"90 000 km : dégradation batterie modérée, logiciel embarqué.",
+   repairCosts:["Diagnostic batterie/logiciel : 200–450 €"],
+   achat:[20,50], revente:110, watch:"État de la batterie, logiciel embarqué", prixAchat:[18000,24000], prixRevente:[20500,26000]},
+
+  {id:137, cat:"tourisme", seg:"suv", name:"Skoda Enyaq", era:"2021–2024", score:7,
+   tech:"100 % électrique, plateforme MEB partagée VW/Audi, batterie 55 à 82 kWh.",
+   alertKm:90, alertText:"90 000 km : dégradation batterie modérée.",
+   repairCosts:["Diagnostic batterie : 200–450 €"],
+   achat:[20,50], revente:120, watch:"État de la batterie", prixAchat:[19000,25000], prixRevente:[21500,27000]},
+
+  {id:138, cat:"tourisme", seg:"compacte", name:"Cupra Born", era:"2022–2024", score:6,
+   tech:"100 % électrique, plateforme MEB, batterie 58 ou 77 kWh, propulsion arrière.",
+   alertKm:80, alertText:"80 000 km : dégradation batterie modérée, logiciel embarqué.",
+   repairCosts:["Diagnostic batterie/logiciel : 200–450 €"],
+   achat:[20,50], revente:100, watch:"État de la batterie, logiciel embarqué", prixAchat:[16000,21000], prixRevente:[18000,22500]},
+
+  {id:139, cat:"tourisme", seg:"suv", name:"Cupra Formentor", era:"2021–2024", score:6,
+   tech:"Essence TSI performance ou hybride rechargeable, boîte DSG.",
+   alertKm:90, alertText:"90 000 km : chaîne de distribution, mécatronique DSG sous forte sollicitation.",
+   repairCosts:["Chaîne de distribution : 900–1 600 €","Mécatronique DSG : 800–1 400 €"],
+   achat:[20,50], revente:100, watch:"Chaîne de distribution, DSG", prixAchat:[15000,20000], prixRevente:[17000,22000]},
+
+  {id:140, cat:"tourisme", seg:"suv", name:"Hyundai Ioniq 5", era:"2021–2024", score:7,
+   tech:"100 % électrique, plateforme dédiée E-GMP, batterie 58 ou 77 kWh, charge ultra-rapide 800V.",
+   alertKm:90, alertText:"90 000 km : dégradation batterie modérée, contrôle du système de charge rapide.",
+   repairCosts:["Diagnostic batterie/chargeur : 200–450 €"],
+   achat:[20,50], revente:130, watch:"État de la batterie", prixAchat:[20000,26000], prixRevente:[23000,29000]},
+
+  {id:141, cat:"tourisme", seg:"berline", name:"Hyundai Ioniq 6", era:"2023–2024", score:7,
+   tech:"100 % électrique, plateforme E-GMP, batterie 53 ou 77 kWh, berline aérodynamique.",
+   alertKm:80, alertText:"80 000 km : peu de recul, base mécanique identique à l'Ioniq 5.",
+   repairCosts:["Diagnostic batterie/chargeur : 200–450 €"],
+   achat:[10,40], revente:110, watch:"Recul limité (modèle récent)", prixAchat:[22000,28000], prixRevente:[24500,30500]},
+
+  {id:142, cat:"tourisme", seg:"premium", name:"Tesla Model S / Model X", era:"2016–2023", score:5,
+   tech:"100 % électrique, moteurs synchrones, batterie 75 à 100 kWh, technologie embarquée dense.",
+   alertKm:150, alertText:"150 000 km : suspension pneumatique, écrans/électronique, poignées de porte électriques.",
+   repairCosts:["Suspension pneumatique : 900–1 600 € / coin","Électronique/écrans : 400–900 €"],
+   achat:[40,80], revente:110, watch:"Suspension pneumatique, électronique", prixAchat:[28000,38000], prixRevente:[29000,39000],
+   risk:"Coûts de réparation élevés hors réseau agréé : vérifier la disponibilité de pièces avant achat, marché de revente plus restreint."},
+
+  {id:143, cat:"tourisme", seg:"berline", name:"Polestar 2", era:"2021–2024", score:6,
+   tech:"100 % électrique, plateforme partagée Volvo, batterie 64 ou 82 kWh, propulsion ou transmission intégrale.",
+   alertKm:90, alertText:"90 000 km : dégradation batterie modérée, logiciel embarqué.",
+   repairCosts:["Diagnostic batterie/logiciel : 200–450 €"],
+   achat:[20,50], revente:110, watch:"État de la batterie, logiciel embarqué", prixAchat:[19000,25000], prixRevente:[21500,27000]},
+
+  {id:144, cat:"tourisme", seg:"suv", name:"Volvo EX30 / C40", era:"2022–2024", score:6,
+   tech:"100 % électrique, plateforme partagée Geely, batterie 51 ou 69 kWh.",
+   alertKm:80, alertText:"80 000 km : peu de recul, contrôle batterie recommandé.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[10,40], revente:100, watch:"Recul limité (modèle récent)", prixAchat:[18000,23000], prixRevente:[20000,25000]},
+
+  {id:145, cat:"tourisme", seg:"premium", name:"BMW iX / i4", era:"2021–2024", score:6,
+   tech:"100 % électrique, batterie 71 à 111 kWh, propulsion ou transmission intégrale xDrive.",
+   alertKm:90, alertText:"90 000 km : dégradation batterie modérée, suspension pneumatique (iX).",
+   repairCosts:["Suspension pneumatique (iX) : 900–1 500 € / coin","Diagnostic batterie : 200–450 €"],
+   achat:[20,50], revente:110, watch:"État de la batterie, suspension pneumatique", prixAchat:[28000,36000], prixRevente:[30000,38000]},
+
+  {id:146, cat:"tourisme", seg:"premium", name:"Mercedes EQA / EQB", era:"2021–2024", score:5,
+   tech:"100 % électrique, base essence GLA/GLB adaptée, batterie 66 à 70 kWh.",
+   alertKm:80, alertText:"80 000 km : dégradation batterie modérée, logiciel embarqué.",
+   repairCosts:["Diagnostic batterie/logiciel : 200–450 €"],
+   achat:[20,50], revente:90, watch:"État de la batterie, logiciel embarqué", prixAchat:[18000,24000], prixRevente:[19500,25500]},
+
+  {id:147, cat:"tourisme", seg:"berline", name:"Citroën C4 Picasso / Grand C4 Spacetourer", era:"2017–2023", score:5,
+   tech:"Essence PureTech ou diesel BlueHDi, boîte manuelle ou EAT6.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech (essence). 130 000 km : FAP diesel.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €","FAP : 900–1 500 €"],
+   achat:[30,70], revente:100, watch:"Chaîne de distribution PureTech", prixAchat:[7000,10500], prixRevente:[9000,12500]},
+
+  {id:148, cat:"tourisme", seg:"berline", name:"Volkswagen Sharan", era:"2015–2022", score:6,
+   tech:"Essence TSI ou diesel TDI, boîte manuelle ou DSG, 7 places.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution TSI. 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution : 900–1 600 €","Mécatronique DSG : 700–1 300 €"],
+   achat:[40,80], revente:110, watch:"Chaîne de distribution, DSG", prixAchat:[8500,12500], prixRevente:[11000,14500]},
+
+  {id:149, cat:"tourisme", seg:"berline", name:"Ford S-Max / Galaxy", era:"2015–2022", score:6,
+   tech:"Essence EcoBoost ou diesel TDCi, boîte manuelle ou automatique, 7 places.",
+   alertKm:100, alertText:"100 000 km : courroie de distribution humide EcoBoost, embrayage.",
+   repairCosts:["Courroie de distribution en bain d'huile : 900–1 500 €","Embrayage : 600–900 €"],
+   achat:[30,70], revente:100, watch:"Courroie de distribution en bain d'huile", prixAchat:[7500,11000], prixRevente:[9500,13000]},
+
+  {id:150, cat:"tourisme", seg:"berline", name:"Opel Zafira", era:"2012–2019", score:5,
+   tech:"Essence turbo ou diesel, boîte manuelle ou automatique, 7 places.",
+   alertKm:90, alertText:"90 000 km : turbo, capteurs électroniques.",
+   repairCosts:["Turbo : 700–1 100 €"],
+   achat:[20,50], revente:70, watch:"Turbo, électronique", prixAchat:[4500,7000], prixRevente:[5500,8000]},
+
+  {id:151, cat:"tourisme", seg:"berline", name:"Toyota Verso", era:"2013–2018", score:8,
+   tech:"Essence atmosphérique ou diesel D-4D, boîte manuelle ou automatique, 7 places.",
+   alertKm:150, alertText:"150 000 km : rien de majeur signalé, robustesse Toyota classique.",
+   repairCosts:["Entretien courant : faible"],
+   achat:[40,80], revente:160, watch:"Aucune vigilance majeure", prixAchat:[6000,9000], prixRevente:[9000,12000]},
+
+  {id:152, cat:"tourisme", seg:"berline", name:"Citroën Berlingo Multispace", era:"2018–2024", score:6,
+   tech:"Essence PureTech ou diesel BlueHDi, version familiale du fourgon utilitaire.",
+   alertKm:90, alertText:"90 000 km : FAP, vanne EGR (diesel). 80 000 km : chaîne PureTech (essence).",
+   repairCosts:["FAP : 800–1 300 €","Chaîne de distribution PureTech : 2 000–3 500 €"],
+   achat:[30,70], revente:100, watch:"Chaîne PureTech (essence) / FAP (diesel)", prixAchat:[7000,10000], prixRevente:[9000,12000]},
+
+  {id:153, cat:"tourisme", seg:"berline", name:"Dacia Lodgy", era:"2014–2022", score:6,
+   tech:"Essence TCe ou diesel dCi, boîte manuelle, 7 places à petit budget.",
+   alertKm:100, alertText:"100 000 km (dCi) : injecteurs, EGR. 90 000 km (TCe) : turbo.",
+   repairCosts:["Injecteurs : 200–400 € l'unité","Turbo : 500–900 €"],
+   achat:[30,60], revente:90, watch:"Turbo, injecteurs", prixAchat:[4500,7000], prixRevente:[6000,8500]},
+
+  {id:154, cat:"tourisme", seg:"berline", name:"Renault Grand Scénic", era:"2016–2022", score:5,
+   tech:"Diesel Blue dCi ou essence TCe, boîte manuelle ou EDC, 7 places.",
+   alertKm:100, alertText:"100 000 km : injecteurs, FAP. 130 000 km : boîte EDC.",
+   repairCosts:["FAP : 900–1 500 €","Boîte EDC : 900–1 500 €"],
+   achat:[30,70], revente:90, watch:"FAP, boîte EDC", prixAchat:[6000,9000], prixRevente:[7500,10500]},
+
+  {id:155, cat:"tourisme", seg:"premium", name:"Mercedes CLA / CLS", era:"2018–2024", score:5,
+   tech:"Essence turbo ou diesel, boîte automatique double embrayage 7G-DCT.",
+   alertKm:90, alertText:"90 000 km : embrayage double, injecteurs.",
+   repairCosts:["Embrayage double : 1 000–1 600 €","Injecteurs : 350–650 € l'unité"],
+   achat:[30,70], revente:90, watch:"Embrayage double, injecteurs", prixAchat:[13000,18000], prixRevente:[15000,20000]},
+
+  {id:156, cat:"tourisme", seg:"premium", name:"BMW Série 4", era:"2020–2024", score:6,
+   tech:"Essence turbo ou diesel turbo, boîte automatique ZF, propulsion ou xDrive.",
+   alertKm:90, alertText:"90 000 km : injecteurs, turbo.",
+   repairCosts:["Injecteurs : 350–650 € l'unité","Turbo : 900–1 600 €"],
+   achat:[30,60], revente:100, watch:"Injecteurs, turbo", prixAchat:[20000,27000], prixRevente:[23000,30000]},
+
+  {id:157, cat:"tourisme", seg:"premium", name:"BMW Série 7", era:"2016–2023", score:5,
+   tech:"Essence turbo ou diesel turbo, boîte automatique ZF, suspension pneumatique, électronique très dense.",
+   alertKm:90, alertText:"90 000 km : suspension pneumatique, électronique embarquée coûteuse.",
+   repairCosts:["Suspension pneumatique : 1 000–1 700 € / coin","Diagnostic électronique : 400–900 €"],
+   achat:[30,70], revente:80, watch:"Suspension pneumatique, électronique — vigilance élevée", prixAchat:[22000,30000], prixRevente:[23000,31000],
+   risk:"Coût d'entretien élevé sur véhicule ancien : réservé aux professionnels avec clientèle premium avertie et marge de sécurité en réparation."},
+
+  {id:158, cat:"tourisme", seg:"premium", name:"Audi A5 / A7", era:"2018–2024", score:6,
+   tech:"Bloc VW Group premium, essence TFSI ou diesel TDI, boîte S tronic ou Tiptronic.",
+   alertKm:90, alertText:"90 000 km : chaîne de distribution, mécatronique boîte automatique.",
+   repairCosts:["Mécatronique : 900–1 600 €","Chaîne de distribution : 900–1 700 €"],
+   achat:[30,70], revente:100, watch:"Chaîne de distribution, boîte automatique", prixAchat:[17000,23000], prixRevente:[19500,25500]},
+
+  {id:159, cat:"tourisme", seg:"premium", name:"Audi A8", era:"2018–2024", score:5,
+   tech:"Essence TFSI ou diesel TDI, boîte Tiptronic, suspension pneumatique, électronique très dense.",
+   alertKm:90, alertText:"90 000 km : suspension pneumatique, électronique embarquée coûteuse.",
+   repairCosts:["Suspension pneumatique : 1 000–1 700 € / coin","Diagnostic électronique : 400–900 €"],
+   achat:[30,60], revente:70, watch:"Suspension pneumatique, électronique — vigilance élevée", prixAchat:[25000,33000], prixRevente:[25000,33000],
+   risk:"Véhicule premium à forte décote et coût d'entretien élevé : marge de revente incertaine, réservé à une clientèle de niche."},
+
+  {id:160, cat:"tourisme", seg:"premium", name:"Audi TT", era:"2015–2023", score:6,
+   tech:"Essence TFSI turbo, boîte manuelle ou S tronic, quattro en option.",
+   alertKm:90, alertText:"90 000 km : chaîne de distribution, mécatronique S tronic.",
+   repairCosts:["Mécatronique S tronic : 900–1 500 €"],
+   achat:[30,60], revente:90, watch:"Mécatronique S tronic", prixAchat:[13000,18000], prixRevente:[15000,20000]},
+
+  {id:161, cat:"tourisme", seg:"premium", name:"Porsche Macan", era:"2017–2024", score:6,
+   tech:"Essence turbo, boîte automatique PDK, transmission intégrale de série.",
+   alertKm:80, alertText:"80 000 km : mécatronique PDK, suspension pneumatique en option.",
+   repairCosts:["Mécatronique PDK : 1 200–2 000 €","Suspension pneumatique : 1 000–1 700 € / coin"],
+   achat:[30,70], revente:100, watch:"Mécatronique PDK, suspension pneumatique", prixAchat:[24000,32000], prixRevente:[27000,35000]},
+
+  {id:162, cat:"tourisme", seg:"premium", name:"Porsche Cayenne", era:"2016–2024", score:6,
+   tech:"Essence turbo ou hybride rechargeable, boîte automatique Tiptronic S, transmission intégrale de série.",
+   alertKm:80, alertText:"80 000 km : suspension pneumatique, turbo.",
+   repairCosts:["Suspension pneumatique : 1 000–1 800 € / coin","Turbo : 1 200–2 000 €"],
+   achat:[30,70], revente:90, watch:"Suspension pneumatique, turbo", prixAchat:[30000,40000], prixRevente:[33000,43000]},
+
+  {id:163, cat:"tourisme", seg:"premium", name:"Porsche 911", era:"2015–2023", score:7,
+   tech:"Essence turbo ou atmosphérique flat-6, boîte manuelle ou PDK, propulsion ou 4.",
+   alertKm:80, alertText:"80 000 km : embrayage (manuelle), mécatronique PDK (automatique), coûts de pièces très élevés.",
+   repairCosts:["Mécatronique PDK : 1 500–2 500 €","Embrayage : 1 500–2 200 €"],
+   achat:[30,70], revente:100, watch:"Coûts de pièces élevés", prixAchat:[55000,75000], prixRevente:[60000,80000]},
+
+  {id:164, cat:"tourisme", seg:"compacte", name:"Mazda MX-5", era:"2015–2024", score:8,
+   tech:"Essence Skyactiv-G atmosphérique, boîte manuelle ou automatique, propulsion arrière, mécanique simple.",
+   alertKm:120, alertText:"120 000 km : embrayage, sinon mécanique très fiable.",
+   repairCosts:["Embrayage : 500–800 €"],
+   achat:[30,60], revente:140, watch:"Aucune vigilance majeure", prixAchat:[13000,18000], prixRevente:[16000,20500]},
+
+  {id:165, cat:"tourisme", seg:"premium", name:"Ford Mustang", era:"2016–2023", score:5,
+   tech:"Essence V8 atmosphérique ou EcoBoost 4 cylindres turbo, boîte manuelle ou automatique, propulsion.",
+   alertKm:80, alertText:"80 000 km : embrayage sous forte sollicitation, turbo (EcoBoost).",
+   repairCosts:["Embrayage : 1 000–1 600 €","Turbo (EcoBoost) : 900–1 400 €"],
+   achat:[20,50], revente:80, watch:"Embrayage, turbo (EcoBoost)", prixAchat:[28000,38000], prixRevente:[29000,39000]},
+
+  {id:166, cat:"tourisme", seg:"premium", name:"Maserati Ghibli / Levante", era:"2017–2023", score:3,
+   tech:"Essence turbo V6, boîte automatique ZF, électronique dense, coûts de pièces très élevés.",
+   alertKm:60, alertText:"60 000 km : pannes électroniques, suspension pneumatique (Levante).",
+   repairCosts:["Suspension pneumatique : 1 500–2 500 € / coin","Diagnostic électronique : 500–1 200 €"],
+   achat:[20,50], revente:50, watch:"Électronique, suspension pneumatique — vigilance très élevée", prixAchat:[30000,42000], prixRevente:[28000,40000],
+   risk:"Marché de niche à forte décote et coûts d'entretien exceptionnels : achat-revente déconseillé sans clientèle spécialisée identifiée en amont."},
+
+  {id:167, cat:"tourisme", seg:"compacte", name:"Mini Convertible", era:"2016–2023", score:5,
+   tech:"Essence turbo, boîte manuelle ou automatique, capote électrique.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution, mécanisme de capote électrique.",
+   repairCosts:["Chaîne de distribution : 900–1 500 €","Mécanisme de capote : 600–1 200 €"],
+   achat:[20,50], revente:80, watch:"Chaîne de distribution, mécanisme de capote", prixAchat:[9000,13000], prixRevente:[10500,14500]},
+
+  {id:168, cat:"utilitaire", seg:"grand-fourgon", name:"Renault Master", era:"2019–2024", score:6,
+   tech:"Diesel Blue dCi 2.3L, boîte manuelle 6 rapports, PTAC jusqu'à 4,5 t.",
+   alertKm:140, alertText:"140 000 km : injecteurs, turbo, embrayage sous forte sollicitation.",
+   repairCosts:["Injecteurs : 350–600 € l'unité","Turbo : 800–1 300 €"],
+   achat:[70,120], revente:180, watch:"Injecteurs, turbo", prixAchat:[11000,15000], prixRevente:[15000,19000]},
+
+  {id:169, cat:"utilitaire", seg:"grand-fourgon", name:"Opel Movano", era:"2019–2024", score:6,
+   tech:"Base Renault Master, diesel Blue dCi 2.3L, boîte manuelle.",
+   alertKm:140, alertText:"140 000 km : injecteurs, turbo.",
+   repairCosts:["Injecteurs : 350–600 € l'unité"],
+   achat:[70,110], revente:170, watch:"Injecteurs, turbo", prixAchat:[10000,14000], prixRevente:[13500,17500]},
+
+  {id:170, cat:"utilitaire", seg:"grand-fourgon", name:"Nissan Interstar", era:"2021–2024", score:6,
+   tech:"Base Renault Master, diesel Blue dCi 2.3L.",
+   alertKm:140, alertText:"140 000 km : injecteurs, turbo.",
+   repairCosts:["Injecteurs : 350–600 € l'unité"],
+   achat:[70,110], revente:170, watch:"Injecteurs, turbo", prixAchat:[10500,14500], prixRevente:[14000,18000]},
+
+  {id:171, cat:"utilitaire", seg:"fourgonnette", name:"Fiat Doblo", era:"2019–2024", score:5,
+   tech:"Diesel Multijet 1.6, boîte manuelle.",
+   alertKm:100, alertText:"100 000 km : injecteurs, FAP.",
+   repairCosts:["Injecteurs : 300–550 € l'unité","FAP : 800–1 300 €"],
+   achat:[30,60], revente:100, watch:"Injecteurs, FAP", prixAchat:[5500,8000], prixRevente:[7500,10000]},
+
+  {id:172, cat:"utilitaire", seg:"fourgonnette", name:"Citroën Nemo / Peugeot Bipper", era:"2015–2020", score:5,
+   tech:"Diesel HDi 1.3, boîte manuelle, petit format urbain.",
+   alertKm:90, alertText:"90 000 km : injecteurs, FAP.",
+   repairCosts:["Injecteurs : 300–500 € l'unité"],
+   achat:[30,60], revente:90, watch:"Injecteurs, FAP", prixAchat:[4000,6000], prixRevente:[5500,7500]},
+
+  {id:173, cat:"utilitaire", seg:"fourgonnette", name:"Renault Express", era:"2022–2024", score:6,
+   tech:"Diesel Blue dCi ou essence TCe, boîte manuelle.",
+   alertKm:90, alertText:"90 000 km : injecteurs, turbo.",
+   repairCosts:["Injecteurs : 300–500 € l'unité","Turbo : 500–900 €"],
+   achat:[20,50], revente:110, watch:"Injecteurs, turbo", prixAchat:[7500,10500], prixRevente:[10000,13000]},
+
+  {id:174, cat:"utilitaire", seg:"pickup", name:"Toyota Hilux", era:"2016–2024", score:9,
+   tech:"Diesel 2.4/2.8L D-4D, boîte manuelle ou automatique, transmission intégrale enclenchable, châssis séparé.",
+   alertKm:200, alertText:"200 000 km : injecteurs, suspension. Robustesse légendaire, utilisé en usage extrême (mines, ONG, armées).",
+   repairCosts:["Injecteurs : 350–600 € l'unité","Amortisseurs : 300–500 € le train"],
+   achat:[80,140], revente:250, watch:"Aucune vigilance majeure", prixAchat:[18000,25000], prixRevente:[24000,31000]},
+
+  {id:175, cat:"utilitaire", seg:"pickup", name:"Ford Ranger", era:"2019–2024", score:7,
+   tech:"Diesel EcoBlue 2.0, boîte manuelle ou automatique 10 rapports, transmission intégrale enclenchable.",
+   alertKm:150, alertText:"150 000 km : embrayage, injecteurs.",
+   repairCosts:["Embrayage : 800–1 200 €","Injecteurs : 350–600 € l'unité"],
+   achat:[70,120], revente:200, watch:"Embrayage, injecteurs", prixAchat:[16000,22000], prixRevente:[20000,26000]},
+
+  {id:176, cat:"utilitaire", seg:"pickup", name:"Volkswagen Amarok", era:"2017–2024", score:7,
+   tech:"Diesel V6 TDI ou 2.0 TDI, boîte manuelle ou automatique, transmission intégrale 4Motion.",
+   alertKm:150, alertText:"150 000 km : injecteurs, turbo.",
+   repairCosts:["Injecteurs : 400–700 € l'unité","Turbo : 900–1 500 €"],
+   achat:[70,120], revente:190, watch:"Injecteurs, turbo", prixAchat:[17000,23000], prixRevente:[21000,27000]},
+
+  {id:177, cat:"utilitaire", seg:"pickup", name:"Nissan Navara", era:"2016–2023", score:6,
+   tech:"Diesel dCi V6 ou 4 cylindres, boîte manuelle ou automatique, transmission intégrale enclenchable.",
+   alertKm:150, alertText:"150 000 km : injecteurs, suspension arrière à ressorts (usure sous charge).",
+   repairCosts:["Injecteurs : 350–600 € l'unité","Suspension arrière : 400–700 €"],
+   achat:[60,100], revente:170, watch:"Injecteurs, suspension arrière", prixAchat:[13000,18000], prixRevente:[16000,21000]},
+
+  {id:178, cat:"utilitaire", seg:"pickup", name:"Mitsubishi L200", era:"2015–2023", score:6,
+   tech:"Diesel 2.2/2.4L, boîte manuelle ou automatique, transmission intégrale enclenchable Super Select.",
+   alertKm:150, alertText:"150 000 km : injecteurs, embrayage.",
+   repairCosts:["Injecteurs : 350–600 € l'unité","Embrayage : 700–1 100 €"],
+   achat:[60,100], revente:160, watch:"Injecteurs, embrayage", prixAchat:[12000,17000], prixRevente:[14500,19000]},
+
+  {id:179, cat:"utilitaire", seg:"pickup", name:"Isuzu D-Max", era:"2017–2024", score:7,
+   tech:"Diesel 1.9/3.0L, boîte manuelle ou automatique, transmission intégrale enclenchable, châssis très robuste.",
+   alertKm:180, alertText:"180 000 km : injecteurs, suspension. Réputation de fiabilité proche de Toyota Hilux.",
+   repairCosts:["Injecteurs : 350–600 € l'unité"],
+   achat:[70,120], revente:220, watch:"Aucune vigilance majeure", prixAchat:[15000,20500], prixRevente:[19000,24500]},
+
+  {id:180, cat:"utilitaire", seg:"pickup", name:"SsangYong Musso", era:"2018–2023", score:5,
+   tech:"Diesel 2.2L, boîte manuelle ou automatique, transmission intégrale enclenchable, réseau après-vente restreint.",
+   alertKm:120, alertText:"120 000 km : turbo, disponibilité des pièces plus longue.",
+   repairCosts:["Turbo : 700–1 200 €"],
+   achat:[40,80], revente:120, watch:"Réseau après-vente restreint", prixAchat:[10000,14000], prixRevente:[11500,16000]},
+
+  {id:181, cat:"utilitaire", seg:"fourgonnette", name:"Piaggio Porter (micro-utilitaire)", era:"2016–2024", score:5,
+   tech:"Essence, diesel ou électrique, petit format urbain, charge utile limitée, usage centre-ville/ZFE.",
+   alertKm:70, alertText:"70 000 km : embrayage, distribution — mécanique simple mais légère.",
+   repairCosts:["Embrayage : 500–800 €"],
+   achat:[10,30], revente:60, watch:"Charge utile limitée, usage spécifique", prixAchat:[6000,9000], prixRevente:[7000,10000]},
+
+  {id:182, cat:"utilitaire", seg:"fourgon-moyen", name:"Fiat Talento (jumeau Renault Trafic)", era:"2016–2021", score:6,
+   tech:"Base Renault Trafic, diesel Blue dCi.",
+   alertKm:90, alertText:"90 000 km : compresseur de climatisation, turbo — mêmes points que le Trafic.",
+   repairCosts:["Turbo : 700–1 100 €"],
+   achat:[50,90], revente:150, watch:"Compresseur de climatisation, turbo", prixAchat:[8000,11500], prixRevente:[11000,14500]},
+
+  {id:183, cat:"tourisme", seg:"citadine", name:"Renault Zoe", era:"2017–2023", score:6,
+   tech:"100 % électrique, batterie 41 ou 52 kWh, chargeur intégré Chameleon.",
+   alertKm:100, alertText:"100 000 km : dégradation batterie modérée, certains modèles en location de batterie (contrat à vérifier).",
+   repairCosts:["Diagnostic batterie : 150–300 €","Reprise de batterie en location : coût mensuel à intégrer si applicable"],
+   achat:[20,50], revente:110, watch:"Contrat de location de batterie à vérifier", prixAchat:[7000,10500], prixRevente:[9000,12500]},
+
+  {id:184, cat:"tourisme", seg:"citadine", name:"Dacia Spring", era:"2021–2024", score:6,
+   tech:"100 % électrique, batterie 27 kWh, citadine urbaine à très petit budget.",
+   alertKm:60, alertText:"60 000 km : autonomie réduite en hiver, dégradation batterie à contrôler.",
+   repairCosts:["Diagnostic batterie : 150–300 €"],
+   achat:[10,30], revente:70, watch:"Autonomie limitée, usage urbain uniquement", prixAchat:[6500,9500], prixRevente:[7500,10500]},
+
+  {id:185, cat:"tourisme", seg:"compacte", name:"Toyota GR Yaris", era:"2020–2024", score:7,
+   tech:"Essence turbo 1.6L 3 cylindres, transmission intégrale GR-Four, boîte manuelle.",
+   alertKm:70, alertText:"70 000 km : embrayage sous forte sollicitation, sinon base Toyota robuste.",
+   repairCosts:["Embrayage : 800–1 200 €"],
+   achat:[20,50], revente:100, watch:"Embrayage (usage sportif)", prixAchat:[24000,32000], prixRevente:[26000,34000]},
+
+  {id:186, cat:"tourisme", seg:"compacte", name:"Volkswagen Golf GTI", era:"2017–2024", score:6,
+   tech:"Essence TSI performance, boîte manuelle ou DSG, châssis sport.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution, mécatronique DSG, embrayage sous forte sollicitation.",
+   repairCosts:["Chaîne de distribution : 900–1 600 €","Mécatronique DSG : 800–1 400 €"],
+   achat:[30,60], revente:100, watch:"Chaîne de distribution, DSG (usage sportif)", prixAchat:[14000,19000], prixRevente:[16500,21000]},
+
+  {id:187, cat:"tourisme", seg:"citadine", name:"Honda e", era:"2020–2023", score:6,
+   tech:"100 % électrique, propulsion arrière, batterie 35,5 kWh, citadine premium à faible autonomie.",
+   alertKm:70, alertText:"70 000 km : autonomie limitée en usage réel, dégradation batterie à contrôler.",
+   repairCosts:["Diagnostic batterie : 150–300 €"],
+   achat:[10,30], revente:70, watch:"Autonomie limitée", prixAchat:[13000,17000], prixRevente:[13500,17500]},
+
+  {id:188, cat:"tourisme", seg:"citadine", name:"Peugeot iOn / Citroën C-Zero", era:"2011–2019", score:5,
+   tech:"100 % électrique, batterie 16 kWh, base Mitsubishi i-MiEV, autonomie très limitée selon standards actuels.",
+   alertKm:80, alertText:"80 000 km : dégradation batterie significative, autonomie résiduelle souvent inférieure à 70 km.",
+   repairCosts:["Diagnostic/remplacement partiel batterie : 1 500–3 000 €"],
+   achat:[20,50], revente:60, watch:"Batterie ancienne génération — autonomie très réduite", prixAchat:[2500,4500], prixRevente:[3000,5000]},
+
+  {id:189, cat:"tourisme", seg:"quadricycle", name:"Renault Twizy", era:"2012–2023", score:6,
+   tech:"Quadricycle 100 % électrique, batterie souvent en location, 2 places en tandem, usage urbain exclusif.",
+   alertKm:50, alertText:"50 000 km : mécanique très simple, contrat de location de batterie à vérifier.",
+   repairCosts:["Entretien courant : très faible"],
+   achat:[5,20], revente:40, watch:"Usage urbain exclusif, contrat batterie à vérifier", prixAchat:[3500,6000], prixRevente:[4000,6500]},
+
+  {id:190, cat:"tourisme", seg:"quadricycle", name:"Citroën Ami", era:"2020–2024", score:7,
+   tech:"Quadricycle léger 100 % électrique, batterie 5,5 kWh, 2 places, vitesse limitée à 45 km/h.",
+   alertKm:40, alertText:"40 000 km : mécanique très simple et peu sollicitée, usage urbain exclusif.",
+   repairCosts:["Entretien courant : très faible"],
+   achat:[5,20], revente:60, watch:"Usage urbain exclusif, marché de niche", prixAchat:[5500,7500], prixRevente:[6000,8000]},
+
+  {id:191, cat:"tourisme", seg:"quadricycle", name:"Aixam (voiture sans permis)", era:"2015–2024", score:6,
+   tech:"Diesel ou électrique, quadricycle léger bridé à 45 km/h, mécanique très simple.",
+   alertKm:50, alertText:"50 000 km : embrayage, distribution — usage généralement faible kilométrage annuel.",
+   repairCosts:["Embrayage : 400–700 €"],
+   achat:[5,20], revente:30, watch:"Marché de niche, revente principalement locale", prixAchat:[6000,9000], prixRevente:[6500,9500]},
+
+  {id:192, cat:"tourisme", seg:"quadricycle", name:"Ligier (voiture sans permis)", era:"2015–2024", score:6,
+   tech:"Diesel ou électrique, quadricycle léger bridé à 45 km/h, mécanique très simple.",
+   alertKm:50, alertText:"50 000 km : embrayage, distribution.",
+   repairCosts:["Embrayage : 400–700 €"],
+   achat:[5,20], revente:30, watch:"Marché de niche, revente principalement locale", prixAchat:[6000,9000], prixRevente:[6500,9500]},
+
+  {id:193, cat:"tourisme", seg:"suv", name:"Toyota bZ4X", era:"2022–2024", score:6,
+   tech:"100 % électrique, batterie 71,4 kWh, propulsion ou transmission intégrale, plateforme dédiée e-TNGA.",
+   alertKm:80, alertText:"80 000 km : peu de recul, contrôle batterie recommandé (rappel constructeur roues à vérifier).",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[20,50], revente:110, watch:"Recul limité, vérifier rappel constructeur (fixation roues)", prixAchat:[19000,25000], prixRevente:[21000,27000]},
+
+  {id:194, cat:"tourisme", seg:"suv", name:"Subaru Solterra", era:"2022–2024", score:6,
+   tech:"100 % électrique, base identique au Toyota bZ4X, transmission intégrale de série.",
+   alertKm:80, alertText:"80 000 km : peu de recul, mêmes points de vigilance que le bZ4X.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[20,50], revente:100, watch:"Recul limité, vérifier rappel constructeur (fixation roues)", prixAchat:[20000,26000], prixRevente:[21500,27500]},
+
+  {id:195, cat:"tourisme", seg:"premium", name:"Lexus UX (SUV compact hybride)", era:"2019–2024", score:9,
+   tech:"Hybride essence 2.0L, e-CVT, base partagée Toyota C-HR/Corolla.",
+   alertKm:150, alertText:"150 000 km : rien de majeur signalé.",
+   repairCosts:["Entretien courant : faible"],
+   achat:[40,80], revente:170, watch:"Aucune vigilance majeure", prixAchat:[14000,19000], prixRevente:[17000,21500]},
+
+  {id:196, cat:"tourisme", seg:"premium", name:"Lexus ES (berline hybride)", era:"2019–2024", score:9,
+   tech:"Hybride essence 2.5L, e-CVT, base partagée Toyota Camry.",
+   alertKm:160, alertText:"160 000 km : rien de majeur signalé.",
+   repairCosts:["Entretien courant : faible"],
+   achat:[50,90], revente:180, watch:"Aucune vigilance majeure", prixAchat:[19000,25000], prixRevente:[23000,28500]},
+
+  {id:197, cat:"tourisme", seg:"compacte", name:"Nissan Leaf", era:"2018–2024", score:6,
+   tech:"100 % électrique, batterie 40 ou 62 kWh, réducteur fixe, l'un des VE les plus anciens du marché.",
+   alertKm:100, alertText:"100 000 km : dégradation batterie plus marquée que la moyenne (refroidissement passif sur 1ʳᵉ génération).",
+   repairCosts:["Diagnostic batterie : 150–300 €"],
+   achat:[20,50], revente:100, watch:"Dégradation batterie (refroidissement passif)", prixAchat:[8500,13000], prixRevente:[10000,14500]},
+
+  {id:198, cat:"tourisme", seg:"citadine", name:"Nissan Micra", era:"2017–2024", score:6,
+   tech:"Essence turbo ou atmosphérique, boîte manuelle ou automatique.",
+   alertKm:100, alertText:"100 000 km : turbo, embrayage.",
+   repairCosts:["Turbo : 600–1 000 €","Embrayage : 500–800 €"],
+   achat:[20,50], revente:100, watch:"Turbo, embrayage", prixAchat:[5500,8000], prixRevente:[7500,10000]},
+
+  {id:199, cat:"tourisme", seg:"suv", name:"Seat Arona", era:"2018–2024", score:6,
+   tech:"Bloc VW Group, essence TSI, boîte manuelle ou DSG.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution TSI. 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution : 800–1 400 €","Mécatronique DSG : 600–1 200 €"],
+   achat:[30,70], revente:110, watch:"Chaîne de distribution, DSG", prixAchat:[7500,11000], prixRevente:[10000,13500]},
+
+  {id:200, cat:"tourisme", seg:"suv", name:"Volkswagen Taigo", era:"2021–2024", score:6,
+   tech:"Bloc VW Group, essence TSI, boîte manuelle ou DSG, coupé-SUV compact.",
+   alertKm:100, alertText:"100 000 km : chaîne de distribution TSI. 150 000 km : mécatronique DSG.",
+   repairCosts:["Chaîne de distribution : 800–1 400 €","Mécatronique DSG : 600–1 200 €"],
+   achat:[30,60], revente:100, watch:"Chaîne de distribution, DSG", prixAchat:[9000,12500], prixRevente:[11500,15000]},
+
+  {id:201, cat:"tourisme", seg:"citadine", name:"Peugeot 206 / 207", era:"2003–2014", score:6,
+   tech:"Essence atmosphérique ou diesel HDi, boîte manuelle, mécanique simple et robuste pour l'époque.",
+   alertKm:130, alertText:"130 000 km : embrayage, distribution HDi, capteurs électriques vieillissants sur les exemplaires les plus anciens.",
+   repairCosts:["Distribution HDi : 300–500 €","Embrayage : 400–700 €"],
+   achat:[90,160], revente:200, watch:"Usure générale liée à l'âge du véhicule", prixAchat:[1500,3500], prixRevente:[2500,4500]},
+
+  {id:202, cat:"tourisme", seg:"berline", name:"Peugeot 301", era:"2013–2022", score:5,
+   tech:"Essence PureTech ou diesel BlueHDi, boîte manuelle, plateforme économique dérivée de la 208.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech (essence).",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €"],
+   achat:[30,60], revente:90, watch:"Chaîne de distribution PureTech", prixAchat:[5000,7500], prixRevente:[6500,9500]},
+
+  {id:203, cat:"tourisme", seg:"compacte", name:"Peugeot 408", era:"2023–2024", score:5,
+   tech:"Essence PureTech, diesel BlueHDi ou hybride rechargeable, boîte EAT8, carrosserie coupé-fastback.",
+   alertKm:70, alertText:"70 000 km : chaîne de distribution PureTech (essence), diagnostic batterie sur version PHEV.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €","Diagnostic batterie PHEV : 300–600 €"],
+   achat:[20,50], revente:100, watch:"Chaîne de distribution PureTech, recul limité (modèle récent)", prixAchat:[14000,19000], prixRevente:[16000,21000]},
+
+  {id:204, cat:"tourisme", seg:"berline", name:"Peugeot Rifter", era:"2019–2024", score:5,
+   tech:"Essence PureTech ou diesel BlueHDi, version familiale 5 à 7 places du Partner.",
+   alertKm:80, alertText:"80 000 km : chaîne de distribution PureTech (essence). 110 000 km : FAP diesel.",
+   repairCosts:["Chaîne de distribution PureTech : 2 000–3 500 €","FAP : 800–1 300 €"],
+   achat:[30,70], revente:100, watch:"Chaîne PureTech (essence) / FAP (diesel)", prixAchat:[8000,11500], prixRevente:[10500,14000]},
+
+  {id:205, cat:"tourisme", seg:"suv", name:"Peugeot e-3008", era:"2024", score:6,
+   tech:"100 % électrique, plateforme STLA Medium, batterie 73 ou 98 kWh, modèle très récent.",
+   alertKm:60, alertText:"60 000 km : peu de recul, contrôle batterie recommandé.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[10,30], revente:100, watch:"Recul très limité (modèle récent)", prixAchat:[24000,30000], prixRevente:[25000,31000]},
+
+  {id:206, cat:"tourisme", seg:"suv", name:"Peugeot e-5008", era:"2024", score:6,
+   tech:"100 % électrique, plateforme STLA Medium, 7 places, batterie 73 ou 98 kWh.",
+   alertKm:60, alertText:"60 000 km : peu de recul, contrôle batterie recommandé.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[10,30], revente:90, watch:"Recul très limité (modèle récent)", prixAchat:[27000,34000], prixRevente:[28000,35000]},
+
+  {id:207, cat:"tourisme", seg:"compacte", name:"Peugeot RCZ", era:"2010–2015", score:5,
+   tech:"Essence turbo THP ou diesel HDi, boîte manuelle ou automatique, coupé sportif de niche.",
+   alertKm:90, alertText:"90 000 km : chaîne de distribution THP, embrayage.",
+   repairCosts:["Chaîne de distribution THP : 900–1 500 €","Embrayage : 600–900 €"],
+   achat:[40,80], revente:70, watch:"Chaîne de distribution THP, marché de niche", prixAchat:[7000,11000], prixRevente:[7500,11500]},
+
+  {id:208, cat:"tourisme", seg:"suv", name:"Peugeot 4007 / 4008", era:"2007–2017", score:5,
+   tech:"SUV rebadgé Mitsubishi Outlander/ASX, essence ou diesel, boîte manuelle ou CVT.",
+   alertKm:100, alertText:"100 000 km : boîte CVT (4008), injecteurs diesel.",
+   repairCosts:["Vidange CVT préventive : 200–300 €","Injecteurs : 250–450 € l'unité"],
+   achat:[50,90], revente:80, watch:"Boîte CVT (4008), modèle discontinué", prixAchat:[5000,8000], prixRevente:[5500,8500]},
+
+  {id:209, cat:"tourisme", seg:"suv", name:"Renault Captur", era:"2019–2024", score:6,
+   tech:"Essence TCe turbo ou hybride E-Tech, boîte manuelle, EDC ou multi-mode.",
+   alertKm:90, alertText:"90 000 km : turbo TCe, embrayage EDC.",
+   repairCosts:["Turbo : 600–1 000 €","Embrayage EDC : 800–1 300 €"],
+   achat:[30,60], revente:110, watch:"Turbo, embrayage EDC", prixAchat:[8500,12000], prixRevente:[11000,14500]},
+
+  {id:210, cat:"tourisme", seg:"suv", name:"Renault Koleos", era:"2017–2023", score:6,
+   tech:"Diesel Blue dCi ou essence TCe, boîte manuelle, CVT ou automatique, transmission intégrale en option, base Nissan X-Trail.",
+   alertKm:110, alertText:"110 000 km : boîte CVT à surveiller, turbo diesel.",
+   repairCosts:["Vidange CVT préventive : 200–300 €","Turbo diesel : 800–1 300 €"],
+   achat:[40,80], revente:120, watch:"Boîte CVT, turbo diesel", prixAchat:[10000,14000], prixRevente:[12500,16500]},
+
+  {id:211, cat:"tourisme", seg:"berline", name:"Renault Laguna", era:"2007–2015", score:5,
+   tech:"Essence ou diesel dCi, boîte manuelle ou automatique, berline familiale historique.",
+   alertKm:130, alertText:"130 000 km : injecteurs, capteurs électroniques vieillissants.",
+   repairCosts:["Injecteurs : 250–450 € l'unité","Capteurs/électronique : 150–350 €"],
+   achat:[80,140], revente:150, watch:"Électronique vieillissante", prixAchat:[2500,4500], prixRevente:[3500,5500]},
+
+  {id:212, cat:"tourisme", seg:"premium", name:"Renault Vel Satis", era:"2002–2009", score:3,
+   tech:"Essence V6 ou diesel dCi, boîte manuelle ou automatique, berline premium historique à l'électronique fragile.",
+   alertKm:100, alertText:"100 000 km : pannes électroniques répétées, suspension, coûts de pièces disproportionnés vu la faible cote.",
+   repairCosts:["Diagnostic/réparation électronique : 300–700 €","Suspension : 400–800 €"],
+   achat:[60,110], revente:80, watch:"Électronique fragile — vigilance élevée, cote résiduelle très faible", prixAchat:[1000,2000], prixRevente:[1200,2200],
+   risk:"Cote de revente si basse que les frais de remise en état dépassent souvent la valeur du véhicule : achat-revente à réserver aux pièces détachées ou à une clientèle de collectionneurs avertis."},
+
+  {id:213, cat:"tourisme", seg:"berline", name:"Renault Fluence (incl. version Z.E. électrique)", era:"2010–2016", score:5,
+   tech:"Essence ou diesel dCi, ou 100 % électrique Z.E. avec location de batterie, berline compacte.",
+   alertKm:100, alertText:"100 000 km : injecteurs (diesel), contrat de location de batterie à vérifier impérativement sur la version Z.E.",
+   repairCosts:["Injecteurs : 250–450 € l'unité","Diagnostic batterie Z.E. : 150–300 €"],
+   achat:[50,90], revente:80, watch:"Contrat de location de batterie (version Z.E.) à vérifier", prixAchat:[3000,5500], prixRevente:[3500,6000]},
+
+  {id:214, cat:"tourisme", seg:"citadine", name:"Renault 5 E-Tech", era:"2024–2025", score:7,
+   tech:"100 % électrique, plateforme AmpR Small, batterie 40 ou 52 kWh, modèle très récent au design néo-rétro.",
+   alertKm:50, alertText:"50 000 km : peu de recul, contrôle batterie recommandé.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[5,20], revente:90, watch:"Recul très limité (modèle tout récent)", prixAchat:[19000,24000], prixRevente:[20000,25000]},
+
+  {id:215, cat:"tourisme", seg:"suv", name:"Renault 4 E-Tech", era:"2025", score:7,
+   tech:"100 % électrique, plateforme AmpR Small, batterie 40 ou 52 kWh, SUV compact urbain.",
+   alertKm:40, alertText:"40 000 km : modèle tout juste lancé, aucun recul disponible sur la durabilité réelle.",
+   repairCosts:["Diagnostic batterie : 200–400 €"],
+   achat:[0,15], revente:70, watch:"Aucun recul disponible (lancement très récent)", prixAchat:[22000,28000], prixRevente:[22500,28500]},
+
+  {id:216, cat:"tourisme", seg:"suv", name:"Renault Rafale", era:"2023–2024", score:6,
+   tech:"Hybride E-Tech ou hybride rechargeable, boîte multi-mode, SUV coupé haut de gamme.",
+   alertKm:60, alertText:"60 000 km : peu de recul, diagnostic batterie sur version rechargeable.",
+   repairCosts:["Diagnostic batterie PHEV : 300–600 €"],
+   achat:[10,30], revente:100, watch:"Recul limité (modèle récent)", prixAchat:[24000,30000], prixRevente:[26000,32000]},
+
+  {id:217, cat:"tourisme", seg:"motorisation", name:"Peugeot / Citroën 1.6 HDi (moteur DV6)", era:"2004–2015, sans AdBlue", score:5,
+   tech:"Diesel 1.6L common-rail codéveloppé PSA-Ford, 90 à 112 ch, distribution par courroie (zone immergée sur certaines versions), volant moteur bi-masse. Équipe notamment les 207, 307, 308, 407, 3008, 5008, C4, C5, Partner/Berlingo de cette génération.",
+   alertKm:130, alertText:"130 000 km : turbo, injecteurs, volant moteur bi-masse. 140 000 km : FAP sur versions équipées.",
+   repairCosts:["Turbo : 700–1 200 €","Injecteurs : 300–500 € l'unité","Volant moteur bi-masse : 500–900 €","FAP : 900–1 500 €"],
+   achat:[70,120], revente:160, watch:"Turbo, injecteurs, volant bi-masse", prixAchat:[3000,6000], prixRevente:[4500,7500]},
+
+  {id:218, cat:"tourisme", seg:"motorisation", name:"Peugeot / Citroën 1.6 BlueHDi (moteur DV6C, avec AdBlue)", era:"2014–2023", score:6,
+   tech:"Évolution du DV6 avec dépollution SCR (AdBlue), 100 à 120 ch, distribution par courroie. Équipe 208, 2008, 308, 3008, C3, C4 de cette génération.",
+   alertKm:120, alertText:"120 000 km : capteur NOx, injecteur AdBlue, vanne EGR. 140 000 km : FAP.",
+   repairCosts:["Capteur NOx : 250–450 €","Injecteur AdBlue : 300–500 €","Vanne EGR : 350–600 €","FAP : 900–1 500 €"],
+   achat:[30,70], revente:110, watch:"Capteur NOx, système AdBlue", prixAchat:[7000,11000], prixRevente:[9500,14000]},
+
+  {id:219, cat:"tourisme", seg:"motorisation", name:"Peugeot / Citroën 2.0 HDi / BlueHDi (moteur DW10)", era:"2005–2023", score:6,
+   tech:"Diesel 2.0L, 136 à 180 ch, distribution par courroie (anciennes versions) ou chaîne (versions récentes), turbo à géométrie variable. Équipe 407, 508, 3008, 5008, C5, C4 Picasso, Expert/Jumpy.",
+   alertKm:140, alertText:"140 000 km : pompe haute pression, injecteurs, turbo. 160 000 km : chaîne de distribution sur versions récentes.",
+   repairCosts:["Pompe haute pression : 1 000–1 800 €","Injecteurs : 350–600 € l'unité","Chaîne de distribution (versions récentes) : 800–1 400 €","FAP : 900–1 500 €"],
+   achat:[50,90], revente:130, watch:"Pompe haute pression, injecteurs", prixAchat:[8000,13000], prixRevente:[10500,16000]},
+
+  {id:220, cat:"tourisme", seg:"motorisation", name:"Renault dCi 1.5 (moteur K9K)", era:"2001–présent", score:6,
+   tech:"Diesel 1.5L le plus répandu du groupe Renault-Nissan-Dacia, 75 à 115 ch, distribution par courroie. Équipe Clio, Mégane, Captur, Kadjar, Kangoo, Express, et la plupart des Dacia.",
+   alertKm:130, alertText:"130 000 km : injecteurs, vanne EGR, volant moteur bi-masse. 140 000 km : turbo sur versions les plus puissantes.",
+   repairCosts:["Injecteurs : 200–400 € l'unité","Vanne EGR : 300–550 €","Volant moteur bi-masse : 500–800 €","Turbo : 500–900 €"],
+   achat:[40,80], revente:150, watch:"Injecteurs, EGR, volant bi-masse", prixAchat:[5000,9000], prixRevente:[7000,11500]},
+
+  {id:221, cat:"tourisme", seg:"motorisation", name:"Renault dCi 1.6 (moteur R9M)", era:"2011–2022", score:4,
+   tech:"Diesel 1.6L, 130 à 160 ch, distribution par courroie en bain d'huile. Équipe Mégane, Scénic, Kadjar, Talisman, Espace de cette génération.",
+   alertKm:100, alertText:"100 000 km : dégradation de la courroie de distribution en bain d'huile, point faible documenté du moteur — contrôle impératif.",
+   repairCosts:["Contrôle/remplacement préventif courroie en bain d'huile : 1 200–2 000 €","Casse moteur si courroie négligée : 4 000–6 000 €","Injecteurs : 300–500 € l'unité"],
+   achat:[30,60], revente:100, watch:"Courroie de distribution en bain d'huile — vigilance élevée", prixAchat:[6000,10000], prixRevente:[7500,12000],
+   risk:"La courroie en bain d'huile doit être contrôlée selon la préconisation constructeur, souvent avant 100 000 km : une casse non anticipée détruit le moteur. Exiger l'historique de remplacement avant achat, faute de quoi la marge est nulle."},
+
+  {id:222, cat:"tourisme", seg:"motorisation", name:"Renault dCi 1.9 (moteur F9Q)", era:"1999–2011", score:6,
+   tech:"Diesel 1.9L ancienne génération, 80 à 120 ch, distribution par courroie classique en zone sèche. Équipe Laguna, Espace, Trafic et Master de cette génération.",
+   alertKm:150, alertText:"150 000 km : pompe d'injection, joint de culasse sur versions très sollicitées. Distribution classique fiable si entretenue.",
+   repairCosts:["Pompe d'injection : 800–1 400 €","Courroie de distribution classique : 300–500 €"],
+   achat:[80,140], revente:170, watch:"Pompe d'injection", prixAchat:[2500,5000], prixRevente:[3500,6500]},
+
+  {id:223, cat:"tourisme", seg:"motorisation", name:"Renault dCi 2.0 (moteur M9R)", era:"2005–2018", score:5,
+   tech:"Diesel 2.0L, 130 à 175 ch, distribution par chaîne, turbo à géométrie variable. Équipe Laguna, Espace, Koleos, Talisman.",
+   alertKm:120, alertText:"120 000 km : chaîne de distribution (tension, bruit), injecteurs. 140 000 km : turbo.",
+   repairCosts:["Chaîne de distribution : 900–1 600 €","Injecteurs : 350–600 € l'unité","Turbo : 900–1 500 €"],
+   achat:[40,80], revente:120, watch:"Chaîne de distribution, injecteurs", prixAchat:[7000,11000], prixRevente:[8500,13000]},
+
+  {id:224, cat:"utilitaire", seg:"motorisation", name:"Renault dCi 2.3 (moteur M9T, mono ou bi-turbo utilitaire)", era:"2010–présent", score:6,
+   tech:"Diesel 2.3L utilitaire, mono ou bi-turbo selon puissance (110 à 170 ch), distribution par courroie. Équipe Trafic et Master (et leurs jumeaux Opel/Nissan/Fiat).",
+   alertKm:140, alertText:"140 000 km : injecteurs, turbo, embrayage sous forte sollicitation utilitaire.",
+   repairCosts:["Injecteurs : 350–600 € l'unité","Turbo : 800–1 300 €","Embrayage : 800–1 300 €"],
+   achat:[60,110], revente:170, watch:"Injecteurs, turbo (usage utilitaire intensif)", prixAchat:[9000,14000], prixRevente:[12000,17000]},
+
+  {id:225, cat:"tourisme", seg:"motorisation", name:"Renault dCi 3.0 V6 (moteur V9X, base Nissan)", era:"2001–2010", score:4,
+   tech:"Diesel V6 3.0L de niche développé avec Nissan, distribution par courroie. Équipe Laguna Coupé, Vel Satis et Espace haut de gamme de cette génération.",
+   alertKm:130, alertText:"130 000 km : pompe à eau, capteurs électroniques. Disponibilité des pièces restreinte, coût de réparation élevé pour un moteur de niche.",
+   repairCosts:["Pompe à eau : 500–900 €","Diagnostic électronique : 300–600 €","Pièces spécifiques V6 : délai et coût majorés"],
+   achat:[60,100], revente:90, watch:"Moteur de niche, pièces rares — vigilance élevée", prixAchat:[4000,7000], prixRevente:[4000,7000],
+   risk:"Moteur V6 de niche à la disponibilité de pièces restreinte : délai et coût de réparation à anticiper avant achat. Marge très incertaine sur un marché de revente étroit."},
+];
+
+const MAXKM = 420;
+const SEGMENTS = {citadine:"Citadine", compacte:"Compacte", berline:"Berline/Monospace", suv:"SUV", premium:"Premium",
+  "pickup":"Pick-up", "quadricycle":"Quadricycle sans permis", "motorisation":"Motorisation (bloc moteur)",
+  "fourgonnette":"Fourgonnette", "fourgon-compact":"Fourgon compact", "fourgon-moyen":"Fourgon moyen", "grand-fourgon":"Grand fourgon"};
+
+const BRAND_PATTERNS = [
+  [/^Land Rover/, "Land Rover"],
+  [/^Range Rover/, "Land Rover"],
+  [/^Alfa Romeo/, "Alfa Romeo"],
+  [/^MG(?=\d|\s|$)/, "MG"],
+  [/^DS(?=\d|\s|$)/, "DS"],
+  [/^Mazda(?=\d|\s|$)/, "Mazda"],
+];
+function getBrand(name){
+  for(const [re, brand] of BRAND_PATTERNS){ if(re.test(name)) return brand; }
+  return name.split(' ')[0].replace(/[,]/g,'');
+}
+const BRANDS = [...new Set(DATA.map(d=>getBrand(d.name)))].sort((a,b)=>a.localeCompare(b));
+
+let compareSet = [];
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function fmtRange(a){ return a[0]+' – '+a[1]+' 000 km'; }
+function fmtPrice(v){ return v.toLocaleString('fr-FR')+' €'; }
+function fmtPriceRange(a){ return fmtPrice(a[0])+' – '+fmtPrice(a[1]); }
+function scoreColor(s){
+  const hue = Math.max(0, Math.min(120, (s-1)/9*120));
+  return `hsl(${hue}, 62%, 40%)`;
+}
+function scoreBadgeHTML(s){
+  return `<span class="score-badge" style="background:${scoreColor(s)}">${s}/10</span>`;
+}
+function scoreBarHTML(s){
+  let bars = '';
+  for(let i=1;i<=10;i++){
+    bars += `<i style="${i<=s ? 'background:'+scoreColor(s) : ''}"></i>`;
+  }
+  return `<div class="score-bar">${bars}</div>`;
+}
+/* marge basse = revente_min - achat_max ; marge haute = revente_max - achat_min */
+function margin(d){
+  return [d.prixRevente[0]-d.prixAchat[1], d.prixRevente[1]-d.prixAchat[0]];
+}
+function marginAvg(d){
+  const m = margin(d);
+  return (m[0]+m[1])/2;
+}
+function marginTier(avg){
+  if(avg>=3800) return 'good';
+  if(avg>=2200) return 'mid';
+  return 'bad';
+}
+function marginPillHTML(d){
+  const avg = marginAvg(d);
+  const tier = d.risk ? 'bad' : marginTier(avg);
+  const label = d.risk ? 'Marge à risque' : (tier==='good' ? 'Bonne marge' : tier==='mid' ? 'Marge correcte' : 'Marge faible');
+  return `<span class="margin-pill ${tier}">${label}</span>`;
+}
+
+/* =========================================================
+   KPI + OVERVIEW
+   ========================================================= */
+function renderKpis(){
+  const tourisme = DATA.filter(d=>d.cat==='tourisme').length;
+  const utilitaire = DATA.filter(d=>d.cat==='utilitaire').length;
+  const avgScore = (DATA.reduce((s,d)=>s+d.score,0)/DATA.length).toFixed(1);
+  const avgMargin = Math.round(DATA.reduce((s,d)=>s+marginAvg(d),0)/DATA.length);
+  const kpis = [
+    {num:DATA.length, lab:'Véhicules référencés'},
+    {num:tourisme+' / '+utilitaire, lab:'Tourisme / Utilitaires'},
+    {num:avgScore+'/10', lab:'Note moyenne du recueil'},
+    {num:'≈ '+fmtPrice(avgMargin), lab:'Marge brute moyenne estimée'},
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k=>
+    `<div class="kpi"><div class="num">${k.num}</div><div class="lab">${k.lab}</div></div>`
+  ).join('');
+}
+
+function renderOverviewTop(){
+  const top = [...DATA].filter(d=>!d.risk).sort((a,b)=>marginAvg(b)-marginAvg(a)).slice(0,4);
+  document.getElementById('overview-top').innerHTML = top.map(d=>cardHTML(d)).join('');
+  attachCardBehaviour('#overview-top');
+}
+
+/* =========================================================
+   CARD RENDERER
+   ========================================================= */
+function cardHTML(d){
+  const isSelected = compareSet.includes(d.id);
+  const m = margin(d);
+  return `
+  <div class="card ${isSelected?'selected':''}" data-id="${d.id}">
+    <div class="card-top">
+      <div>
+        <h3>${d.name}</h3>
+        <div class="era">${d.era}${d.seg && SEGMENTS[d.seg] ? ' · '+SEGMENTS[d.seg] : ''}</div>
+      </div>
+      <span class="badge ${d.cat}">${d.cat === 'tourisme' ? 'Tourisme' : 'Utilitaire'}</span>
+    </div>
+    <div class="score-row">${scoreBadgeHTML(d.score)}${scoreBarHTML(d.score)}</div>
+    <div class="margin-strip">
+      <div><div class="ml">Marge brute estimée</div><div class="mv">${fmtPrice(m[0])} – ${fmtPrice(m[1])}</div></div>
+      ${marginPillHTML(d)}
+    </div>
+    <div class="expand-hint">${d.watch}</div>
+    <div class="card-body">
+      <div class="field"><div class="k">Caractéristiques techniques</div><div class="v">${d.tech}</div></div>
+      <div class="field"><div class="k">Seuil d'alerte km</div><div class="v">${d.alertText}</div></div>
+      <div class="field"><div class="k">Coûts de réparation à prévoir</div><ul>${d.repairCosts.map(r=>`<li>${r}</li>`).join('')}</ul></div>
+      <div class="field">
+        <div class="k">Seuil achat-revente (kilométrage)</div>
+        <div class="achat-revente">
+          <div class="ar-box"><div class="k">Achat conseillé</div><div class="v">${fmtRange(d.achat)}</div></div>
+          <div class="ar-box"><div class="k">Revente avant</div><div class="v">${d.revente ? d.revente+' 000 km' : 'Non communiqué'}</div></div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="k">Rentabilité pour un professionnel</div>
+        <div class="price-grid">
+          <div class="price-box"><div class="k">Prix d'achat conseillé</div><div class="v">${fmtPriceRange(d.prixAchat)}</div></div>
+          <div class="price-box"><div class="k">Prix de revente visé</div><div class="v">${fmtPriceRange(d.prixRevente)}</div></div>
+          <div class="price-box margin"><div class="k">Marge brute</div><div class="v">${fmtPrice(m[0])} – ${fmtPrice(m[1])}</div></div>
+        </div>
+        ${d.risk ? `<div class="risk-flag">⚠ ${d.risk}</div>` : ''}
+      </div>
+      <div class="card-actions">
+        <button class="btn-compare ${isSelected?'active':''}" data-id="${d.id}">${isSelected ? '✓ Dans le comparateur' : '+ Comparer'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function attachCardBehaviour(scope){
+  document.querySelectorAll(scope+' .card').forEach(c=>{
+    c.addEventListener('click', (e)=>{
+      if(e.target.closest('.btn-compare')) return;
+      c.classList.toggle('open');
+    });
+  });
+  document.querySelectorAll(scope+' .btn-compare').forEach(b=>{
+    b.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      toggleCompare(parseInt(b.dataset.id));
+    });
+  });
+}
+
+/* =========================================================
+   COMPARATEUR
+   ========================================================= */
+function toggleCompare(id){
+  const idx = compareSet.indexOf(id);
+  if(idx>-1){ compareSet.splice(idx,1); }
+  else{
+    if(compareSet.length>=3){ compareSet.shift(); }
+    compareSet.push(id);
+  }
+  renderCatalogue();
+  renderOverviewTop();
+  renderTray();
+  renderCompareView();
+  updateNavCounts();
+}
+
+function renderTray(){
+  const tray = document.getElementById('compare-tray');
+  const chips = document.getElementById('tray-chips');
+  if(compareSet.length===0){ tray.classList.remove('show'); return; }
+  tray.classList.add('show');
+  chips.innerHTML = compareSet.map(id=>{
+    const d = DATA.find(x=>x.id===id);
+    return `<div class="tchip">${d.name}<button data-id="${id}">✕</button></div>`;
+  }).join('');
+  chips.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=> toggleCompare(parseInt(b.dataset.id)));
+  });
+}
+
+function renderCompareView(){
+  const view = document.getElementById('compare-view');
+  if(compareSet.length===0){
+    view.innerHTML = `<div class="empty-compare">Aucun véhicule sélectionné. Ajoutez-en depuis le <strong>Catalogue complet</strong> via le bouton « + Comparer » présent dans chaque fiche.</div>`;
+    return;
+  }
+  const items = compareSet.map(id=>DATA.find(x=>x.id===id));
+  const rows = [
+    {label:'Catégorie', get:d=>d.cat==='tourisme'?'Tourisme':'Utilitaire'},
+    {label:'Génération', get:d=>d.era},
+    {label:'Note', get:d=>scoreBadgeHTML(d.score)},
+    {label:'Technique', get:d=>d.tech},
+    {label:'Seuil d\'alerte', get:d=>d.alertText},
+    {label:'Coûts de réparation', get:d=>'<ul>'+d.repairCosts.map(r=>`<li>${r}</li>`).join('')+'</ul>'},
+    {label:'Prix d\'achat conseillé', get:d=>fmtPriceRange(d.prixAchat)},
+    {label:'Prix de revente visé', get:d=>fmtPriceRange(d.prixRevente)},
+    {label:'Marge brute estimée', get:d=>{const m=margin(d); return fmtPrice(m[0])+' – '+fmtPrice(m[1]);}},
+    {label:'Vigilance', get:d=>d.watch + (d.risk ? '<br><span style="color:var(--bad)">⚠ '+d.risk+'</span>' : '')},
+  ];
+  view.innerHTML = `
+  <table class="compare-table">
+    <tr><th>Critère</th>${items.map(d=>`<th>${d.name}</th>`).join('')}</tr>
+    ${rows.map(r=>`<tr><td class="label">${r.label}</td>${items.map(d=>`<td>${r.get(d)}</td>`).join('')}</tr>`).join('')}
+  </table>`;
+}
+
+document.getElementById('tray-clear').addEventListener('click', ()=>{
+  compareSet = [];
+  renderCatalogue(); renderOverviewTop(); renderTray(); renderCompareView(); updateNavCounts();
+});
+document.getElementById('tray-go').addEventListener('click', ()=> goToSection('comparateur'));
+
+/* =========================================================
+   CATALOGUE : recherche / filtre / tri / budget
+   ========================================================= */
+let catFilter = 'tous';
+let segFilter = 'tous';
+let brandFilter = 'tous';
+let searchTerm = '';
+let sortMode = 'margin-desc';
+let budgetMax = 20000;
+
+function buildFilters(){
+  const catBox = document.getElementById('cat-filters');
+  const cats = [['tous','Tous'],['tourisme','Tourisme'],['utilitaire','Utilitaire']];
+  catBox.innerHTML = cats.map(([k,l])=>`<button class="chip ${catFilter===k?'active':''}" data-cat="${k}">${l}</button>`).join('');
+  catBox.querySelectorAll('.chip').forEach(c=>c.addEventListener('click', ()=>{
+    catFilter = c.dataset.cat; buildFilters(); renderCatalogue();
+  }));
+
+  const segBox = document.getElementById('seg-filters');
+  const segsUsed = ['tous', ...new Set(DATA.map(d=>d.seg))];
+  segBox.innerHTML = segsUsed.map(k=>`<button class="chip ${segFilter===k?'active':''}" data-seg="${k}">${k==='tous'?'Tous segments':SEGMENTS[k]||k}</button>`).join('');
+  segBox.querySelectorAll('.chip').forEach(c=>c.addEventListener('click', ()=>{
+    segFilter = c.dataset.seg; buildFilters(); renderCatalogue();
+  }));
+
+  const brandSel = document.getElementById('brandsel');
+  if(brandSel.options.length<=1){
+    brandSel.innerHTML = '<option value="tous">Toutes marques</option>' + BRANDS.map(b=>`<option value="${b}">${b}</option>`).join('');
+    brandSel.addEventListener('change', (e)=>{ brandFilter = e.target.value; renderCatalogue(); });
+  }
+  brandSel.value = brandFilter;
+}
+
+function getFiltered(){
+  return DATA.filter(d=>{
+    if(catFilter!=='tous' && d.cat!==catFilter) return false;
+    if(segFilter!=='tous' && d.seg!==segFilter) return false;
+    if(brandFilter!=='tous' && getBrand(d.name)!==brandFilter) return false;
+    if(searchTerm && !d.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if(d.prixAchat[0] > budgetMax) return false;
+    return true;
+  }).sort((a,b)=>{
+    if(sortMode==='margin-desc') return marginAvg(b)-marginAvg(a);
+    if(sortMode==='score-desc') return b.score-a.score;
+    if(sortMode==='score-asc') return a.score-b.score;
+    if(sortMode==='alpha') return a.name.localeCompare(b.name);
+    if(sortMode==='alert') return a.alertKm-b.alertKm;
+    if(sortMode==='price-asc') return a.prixAchat[0]-b.prixAchat[0];
+    return 0;
+  });
+}
+
+function renderCatalogue(){
+  const items = getFiltered();
+  document.getElementById('result-count').textContent = items.length+' véhicule'+(items.length>1?'s':'')+' affiché'+(items.length>1?'s':'')+' sur '+DATA.length;
+  document.getElementById('grid-catalogue').innerHTML = items.map(d=>cardHTML(d)).join('') || '<div class="empty-compare">Aucun véhicule ne correspond à ces critères.</div>';
+  attachCardBehaviour('#grid-catalogue');
+}
+
+document.getElementById('search').addEventListener('input', (e)=>{ searchTerm = e.target.value; renderCatalogue(); });
+document.getElementById('sortsel').addEventListener('change', (e)=>{ sortMode = e.target.value; renderCatalogue(); });
+document.getElementById('budget').addEventListener('input', (e)=>{
+  budgetMax = parseInt(e.target.value);
+  document.getElementById('budget-val').textContent = budgetMax.toLocaleString('fr-FR')+' €';
+  renderCatalogue();
+});
+
+function updateNavCounts(){
+  document.getElementById('cnt-all').textContent = DATA.length;
+  document.getElementById('cnt-compare').textContent = compareSet.length>0 ? compareSet.length : '';
+}
+
+/* =========================================================
+   RENTABILITE (margin chart)
+   ========================================================= */
+let marginCatFilter = 'tous';
+let marginBrandFilter = 'tous';
+let marginSearch = '';
+
+function buildMarginFilters(){
+  const box = document.getElementById('cat-filters-margin');
+  const cats = [['tous','Tous'],['tourisme','Tourisme'],['utilitaire','Utilitaire']];
+  box.innerHTML = cats.map(([k,l])=>`<button class="chip ${marginCatFilter===k?'active':''}" data-cat="${k}">${l}</button>`).join('');
+  box.querySelectorAll('.chip').forEach(c=>c.addEventListener('click', ()=>{
+    marginCatFilter = c.dataset.cat; buildMarginFilters(); renderMarginChart();
+  }));
+
+  const brandSel = document.getElementById('brandsel-margin');
+  if(brandSel.options.length<=1){
+    brandSel.innerHTML = '<option value="tous">Toutes marques</option>' + BRANDS.map(b=>`<option value="${b}">${b}</option>`).join('');
+    brandSel.addEventListener('change', (e)=>{ marginBrandFilter = e.target.value; renderMarginChart(); });
+  }
+  brandSel.value = marginBrandFilter;
+}
+document.getElementById('search-margin').addEventListener('input', (e)=>{ marginSearch = e.target.value; renderMarginChart(); });
+
+function renderMarginChart(){
+  const items = DATA.filter(d=>{
+    if(marginCatFilter!=='tous' && d.cat!==marginCatFilter) return false;
+    if(marginBrandFilter!=='tous' && getBrand(d.name)!==marginBrandFilter) return false;
+    if(marginSearch && !d.name.toLowerCase().includes(marginSearch.toLowerCase())) return false;
+    return true;
+  }).sort((a,b)=>marginAvg(b)-marginAvg(a));
+
+  const maxMargin = Math.max(...DATA.map(d=>margin(d)[1]));
+  const wrap = document.getElementById('margin-chart-wrap');
+  wrap.innerHTML = items.map(d=>{
+    const m = margin(d);
+    const avg = marginAvg(d);
+    const widthPct = Math.max(4, (avg/maxMargin*100)).toFixed(1)+'%';
+    const color = d.risk ? 'var(--bad)' : (marginTier(avg)==='good' ? 'var(--good)' : marginTier(avg)==='mid' ? 'var(--vigilance)' : 'var(--bad)');
+    return `
+    <div class="margin-chart-row">
+      <div>
+        <div class="rowlabel">${d.name}</div>
+        <div class="rowsub">${d.cat==='tourisme'?'Tourisme':'Utilitaire'} · ${d.score}/10${d.risk ? ' · ⚠ risque' : ''}</div>
+      </div>
+      <div class="margin-track" title="${fmtPrice(m[0])} – ${fmtPrice(m[1])}">
+        <div class="fill" style="width:${widthPct}; background:${color}"></div>
+      </div>
+      <div class="mval">≈ ${fmtPrice(Math.round(avg))}</div>
+    </div>`;
+  }).join('') || '<div class="empty-compare">Aucun véhicule ne correspond à ce filtre.</div>';
+}
+
+/* =========================================================
+   COMPARATIF ACHAT-REVENTE KM (chart)
+   ========================================================= */
+let chartCatFilter = 'tous';
+let chartBrandFilter = 'tous';
+let chartSearch = '';
+
+function buildChartFilters(){
+  const box = document.getElementById('cat-filters-chart');
+  const cats = [['tous','Tous'],['tourisme','Tourisme'],['utilitaire','Utilitaire']];
+  box.innerHTML = cats.map(([k,l])=>`<button class="chip ${chartCatFilter===k?'active':''}" data-cat="${k}">${l}</button>`).join('');
+  box.querySelectorAll('.chip').forEach(c=>c.addEventListener('click', ()=>{
+    chartCatFilter = c.dataset.cat; buildChartFilters(); renderChart();
+  }));
+
+  const brandSel = document.getElementById('brandsel-chart');
+  if(brandSel.options.length<=1){
+    brandSel.innerHTML = '<option value="tous">Toutes marques</option>' + BRANDS.map(b=>`<option value="${b}">${b}</option>`).join('');
+    brandSel.addEventListener('change', (e)=>{ chartBrandFilter = e.target.value; renderChart(); });
+  }
+  brandSel.value = chartBrandFilter;
+}
+document.getElementById('search-chart').addEventListener('input', (e)=>{ chartSearch = e.target.value; renderChart(); });
+
+function pct(km){ return (km/MAXKM*100).toFixed(2)+'%'; }
+
+function renderChart(){
+  const items = DATA.filter(d=>{
+    if(chartCatFilter!=='tous' && d.cat!==chartCatFilter) return false;
+    if(chartBrandFilter!=='tous' && getBrand(d.name)!==chartBrandFilter) return false;
+    if(chartSearch && !d.name.toLowerCase().includes(chartSearch.toLowerCase())) return false;
+    return true;
+  }).sort((a,b)=>a.achat[0]-b.achat[0]);
+
+  const body = document.getElementById('chart-body');
+  body.innerHTML = items.map(d=>{
+    const left = pct(d.achat[0]);
+    const width = pct(d.achat[1]-d.achat[0]);
+    const marker = d.revente ? `<div class="marker" style="left:${pct(d.revente)}"></div>` : '';
+    const alertmark = `<div class="alertmark" style="left:${pct(d.alertKm)}"></div>`;
+    return `
+    <div class="chart-row">
+      <div>
+        <div class="rowlabel">${d.name}</div>
+        <div class="rowsub">${d.cat === 'tourisme' ? 'Tourisme' : 'Utilitaire'} · ${d.score}/10</div>
+      </div>
+      <div class="track">
+        <div class="axis"></div>
+        <div class="band ${d.cat}" style="left:${left}; width:${width}"
+             onmouseenter='showTip(event, ${d.id})'
+             onmousemove="moveTip(event)"
+             onmouseleave="hideTip()"></div>
+        ${marker}
+        ${alertmark}
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-compare">Aucun véhicule ne correspond à ce filtre.</div>';
+
+  const ticksEl = document.getElementById('axis-ticks');
+  const ticks = [0,100,200,300,400];
+  ticksEl.innerHTML = ticks.map(t=>`<span style="left:${pct(t)}">${t}k</span>`).join('');
+}
+
+const tip = document.getElementById('tooltip');
+function showTip(e, id){
+  const d = DATA.find(x=>x.id===id);
+  const m = margin(d);
+  tip.innerHTML = `<b>${d.name}</b> — ${d.score}/10<br>Achat conseillé : ${fmtRange(d.achat)} (${fmtPriceRange(d.prixAchat)})<br>` +
+    (d.revente ? `Revente avant : ${d.revente} 000 km (${fmtPriceRange(d.prixRevente)})<br>` : '') +
+    `Marge brute : ${fmtPrice(m[0])} – ${fmtPrice(m[1])}<br>Vigilance : ${d.watch}`;
+  tip.style.display = 'block';
+  moveTip(e);
+}
+function moveTip(e){ tip.style.left = (e.clientX + 16) + 'px'; tip.style.top = (e.clientY + 12) + 'px'; }
+function hideTip(){ tip.style.display = 'none'; }
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+function goToSection(id){
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active', b.dataset.section===id));
+  document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active', s.id===id));
+  window.scrollTo({top:0, behavior:'instant'});
+}
+document.getElementById('nav').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  goToSection(btn.dataset.section);
+});
+
+/* =========================================================
+   INIT
+   ========================================================= */
+renderKpis();
+renderOverviewTop();
+buildFilters();
+renderCatalogue();
+buildMarginFilters();
+renderMarginChart();
+buildChartFilters();
+renderChart();
+renderTray();
+renderCompareView();
+updateNavCounts();
+</script>
+</body>
+</html>
