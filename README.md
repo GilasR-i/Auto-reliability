@@ -2,7 +2,7 @@
 
 An interactive, single-file web dashboard for automotive resale professionals in France. It catalogues **225 vehicles and engine variants** — passenger cars, utility vans, pick-ups, electric vehicles, no-license quadricycles, and standalone diesel engine profiles — with reliability scoring, repair cost estimates, and buy/resell price guidance.
 
-🔗 **Live demo:** _add your GitHub Pages URL here once deployed_
+🔗 **Démo en direct :** https://gilasr-i.github.io/Auto-reliability/
 
 ## What it does
 
